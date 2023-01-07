@@ -1,0 +1,41 @@
+{
+  "name": "termx-markup",
+  "packageManager": "yarn@3.2.4",
+  "devDependencies": {
+    "@swc/core": "latest",
+    "@swc/jest": "latest",
+    "@types/jest": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "eslint": "latest",
+    "eslint-config-prettier": "latest",
+    "eslint-plugin-prettier": "latest",
+    "husky": "latest",
+    "jest": "latest",
+    "ncpa0cpl": "ncpa0cpl/git-hook-tasks",
+    "prettier": "latest",
+    "prettier-plugin-jsdoc": "latest",
+    "typescript": "latest"
+  },
+  "version": "1.0.0",
+  "main": "./dist/index.js",
+  "scripts": {
+    "fix:lint": "eslint --fix .",
+    "fix:prettier": "prettier -w ./src .",
+    "test:jest": "jest --coverage",
+    "test:lint": "eslint .",
+    "test:prettier": "prettier -c ./src && prettier -c ./__tests__",
+    "test:tsc": "tsc --noEmit",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "repository": {
+    "url": ""
+  },
+  "description": "",
+  "license": "MIT",
+  "author": {
+    "name": "Szymon Bretner",
+    "email": ""
+  }
+}
