@@ -18,8 +18,9 @@ export class ScopeTracker {
   }
 
   static enterScope(scope: Scope) {
-    this.scopeStack.push(scope);
-    this._currentScope = Object.assign({}, this._currentScope, scope);
+    const s = Object.assign({}, this._currentScope, scope);
+    this.scopeStack.push(s);
+    this._currentScope = s;
   }
 
   static exitScope() {
