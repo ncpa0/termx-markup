@@ -5,6 +5,7 @@ export type XmlObject = {
   content: Array<string | XmlObject>;
 };
 
+/** XML parsing function used internally by the library. */
 export function parseXml(xml: string): XmlObject {
   if (xml[0] !== "<") {
     return {

@@ -1,3 +1,11 @@
+/**
+ * Creates a html string from the given template literal. Each parameter
+ * in the template literal is escaped to not include xml tag characters.
+ * 
+ * @example
+ *  html`<div>${"<span>hello</span>"}</div>`;
+ *  // > <div>&lt;span&gt;hello&lt;/span&gt;</div>
+ */
 export function html(...args: any[]): string {
   const b = args[0];
   let c = "",

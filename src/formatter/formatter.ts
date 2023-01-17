@@ -9,7 +9,39 @@ import { ScopeTracker } from "./scope-tracker";
 const escape = "\u001b";
 const Bold = `${escape}[1m`;
 
+/**
+ * Formats XML into a string that can be printed to the terminal.
+ *
+ * @example
+ *   ```ts
+ *   const markup = html`<p color="red">Hello World!</p>`;
+ *
+ *   const formatted = MarkupFormatter.format(markup);
+ *   // formatted = "\u001b[31mHello World!\u001b[0m"
+ *   ```
+ */
 export class MarkupFormatter {
+  /**
+   * Defines a new named color that can be used in the markup for
+   * font and background colors.
+   *
+   * The given color can be in one of the following formats:
+   *
+   * - `#rrggbb` (hexadecimal)
+   * - `rgb(r, g, b)` (decimal)
+   * - `{ r: number, g: number, b: number }` (JSON object)
+   */
+  static defineColor(name: string, c: `#${string}` | `rgb(${string})`): void;
+  static defineColor(
+    name: string,
+    c: { r: number; g: number; b: number }
+  ): void;
+  static defineColor(name: string, r: number, g: number, b: number): void;
+  static defineColor(name: string, ...args: any[]) {
+    TermxBgColor.define(name, ...args);
+    TermxFontColor.define(name, ...args);
+  }
+
   static format(text: string): string {
     const xml = parseXml(text);
     return TermxFontColor.get("unset") + desanitizeHtml(this.formatXml(xml));
@@ -30,18 +62,21 @@ export class MarkupFormatter {
           xml.content
             .map((content, index) => {
               if (typeof content === "string") {
-                return xml.textNode ? content.trim() : content;
+                const shouldTrim = xml.textNode || xml.tag === "span";
+                return shouldTrim ? content.trim() : content;
               }
 
-              const isLast = index === xml.content.length - 1;
+              const isLast = this.isLastTag(index, xml.content);
               return this.formatXml(content, isLast);
             })
             .join("");
 
         ScopeTracker.exitScope();
 
-        if (xml.tag === "p" && parentTag === "" && !isLast) {
-          result += "\n";
+        if (xml.tag === "p") {
+          if (!(parentTag === "" && isLast)) {
+            result += "\n";
+          }
         }
 
         result +=
@@ -58,10 +93,11 @@ export class MarkupFormatter {
         result += xml.content
           .map((content, index) => {
             if (typeof content === "string") {
-              return xml.textNode ? content.trim() : content;
+              const shouldTrim = xml.textNode || xml.tag === "span";
+              return shouldTrim ? content.trim() : content;
             }
 
-            const isLast = index === xml.content.length - 1;
+            const isLast = this.isLastTag(index, xml.content);
             return this.formatXml(content, isLast);
           })
           .join("");
@@ -73,6 +109,22 @@ export class MarkupFormatter {
     }
 
     return result;
+  }
+
+  private static isLastTag(
+    tagIndex: number,
+    content: (string | XmlObject)[]
+  ): boolean {
+    let isLast = true;
+
+    for (let i = tagIndex + 1; i < content.length; i++) {
+      if (typeof content[i] !== "string") {
+        isLast = false;
+        break;
+      }
+    }
+
+    return isLast;
   }
 
   private static scopeToTermMarks(scope: Scope): string {

@@ -1,8 +1,35 @@
+import { TermxFontColor } from "./colors/termx-font-colors";
 import { MarkupFormatter } from "./formatter/formatter";
 
+/**
+ * A convenience class for formatting and printing markup to the
+ * console.
+ *
+ * By default it will try to detect a `print` function in the
+ * global scope, if it's not found it will try to use the
+ * `console.log` function.
+ *
+ * (if neither `print` or `console.log` are available, global
+ * Output will not be able to print until a print function is set
+ * manually)
+ *
+ * What function is used for printing can be changed by calling
+ * the `Output.setEnvPrint` function. This will change how the
+ * global Output instance prints as well as any new Output
+ * instances created after this change.
+ *
+ * Additionally, each instance of Output can be given a custom
+ * print function that will override the global print function.
+ */
 export class Output {
   private static defaultEnvPrint?: (text: string) => void;
-  private static globalOutput: Output = new Output();
+  private static globalOutput: Output;
+
+  static {
+    try {
+      this.globalOutput = new Output();
+    } catch (e) {}
+  }
 
   /** Formats the given markup and prints it to the console. */
   static print(...markup: string[]): void {
@@ -31,6 +58,12 @@ export class Output {
 
   private envPrint: (text: string) => void;
 
+  /**
+   * Creates a new Output instance.
+   *
+   * @param envPrint The print function to use for printing to
+   *   the console.
+   */
   constructor(envPrint?: (text: string) => void) {
     if (envPrint) {
       this.envPrint = envPrint;
@@ -49,25 +82,75 @@ export class Output {
     }
   }
 
+  private printError(e: any) {
+    if (e != null) {
+      this.envPrint(e.toString() + "\n");
+
+      if (typeof e === "object" && e.stack) {
+        this.envPrint(e.stack + "\n");
+      }
+    }
+  }
+
+  private parseMarkupLines(markup: string[]): string[] {
+    const result: string[] = [];
+
+    for (const m of markup) {
+      result.push(MarkupFormatter.format(m));
+    }
+
+    return result;
+  }
+
   /** Formats the given markup and prints it to the console. */
   public print(...markup: string[]): void {
-    for (const m of markup) {
-      this.envPrint(MarkupFormatter.format(m));
+    try {
+      const lines = this.parseMarkupLines(markup);
+
+      for (const line of lines) {
+        this.envPrint(line);
+      }
+    } catch (e) {
+      this.envPrint(
+        TermxFontColor.get("red") +
+          "Failed to format/print given markup." +
+          TermxFontColor.get("unset") +
+          "\n"
+      );
+      this.printError(e);
     }
   }
 
   /**
    * Formats the given markup and prints it to the console, and
-   * adds a new line character at the start of each markup
+   * adds a new line character at the end of each given markup
    * string.
    */
   public println(...markup: string[]): void {
-    for (const m of markup) {
-      this.envPrint("\n" + MarkupFormatter.format(m));
+    try {
+      const lines = this.parseMarkupLines(markup);
+
+      for (const line of lines) {
+        this.envPrint(line + "\n");
+      }
+    } catch (e) {
+      this.envPrint(
+        TermxFontColor.get("red") +
+          "Failed to format/print given markup." +
+          TermxFontColor.get("unset") +
+          "\n"
+      );
+      this.printError(e);
     }
   }
 }
 
+/**
+ * Holds a buffer of markup text to print to the console.
+ *
+ * Content of the buffer is printed to the console when the
+ * flush() method is called.
+ */
 export class OutputBuffer {
   private static globalOutputBuffer: OutputBuffer = new OutputBuffer();
 
@@ -93,18 +176,19 @@ export class OutputBuffer {
     OutputBuffer.globalOutputBuffer.println(markup);
   }
 
-  private buffer: string[] = [];
+  private buffer: Array<{
+    type: "print" | "println";
+    markup: string;
+  }> = [];
 
+  /**
+   * Creates a new OutputBuffer instance.
+   *
+   * @param output The Output instance to use for printing the
+   *   buffer to the console. If not specified, the global Output
+   *   instance will be used.
+   */
   constructor(private output: typeof Output | Output = Output) {}
-
-  private appendToLastLine(markup: string) {
-    const lastLine = this.buffer.pop();
-    if (lastLine) {
-      this.buffer.push(lastLine + markup);
-    } else {
-      this.buffer.push(markup);
-    }
-  }
 
   /**
    * Formats the given markup and adds it to the current buffer.
@@ -113,7 +197,9 @@ export class OutputBuffer {
    * the console.
    */
   print(...markup: string[]) {
-    this.appendToLastLine(markup.join(""));
+    this.buffer.push(
+      ...markup.map((m) => ({ type: "print", markup: m } as const))
+    );
   }
 
   /**
@@ -125,7 +211,9 @@ export class OutputBuffer {
    * the console.
    */
   println(...markup: string[]) {
-    this.buffer.push(...markup);
+    this.buffer.push(
+      ...markup.map((m) => ({ type: "println", markup: m } as const))
+    );
   }
 
   /**
@@ -133,18 +221,41 @@ export class OutputBuffer {
    * console.
    */
   flush() {
-    if (this.buffer.length === 0) return;
-    this.output.print(...this.buffer);
+    for (const { type, markup } of this.buffer) {
+      switch (type) {
+        case "print":
+          this.output.print(markup);
+          break;
+        case "println":
+          this.output.println(markup);
+          break;
+      }
+    }
     this.buffer = [];
   }
 
   /**
-   * Pipes the content of the current buffer to another
-   * OutputBuffer instance.
+   * Pipes the content of the current buffer to the provided
+   * OutputBuffer instance and returns that OutputBuffer.
    */
-  pipeTo(output: OutputBuffer) {
-    if (this.buffer.length === 0) return;
+  pipe(output: OutputBuffer): OutputBuffer {
+    if (this.buffer.length === 0) return output;
     output.buffer.push(...this.buffer);
     this.buffer = [];
+    return output;
+  }
+
+  /**
+   * Works like pipe(), but in the reverse direction. (i.e.
+   * `output` -> `this` instead of `this` -> `output` )
+   *
+   * Pipes the content of the provided OutputBuffer instance to
+   * the current buffer and returns the current OutputBuffer.
+   */
+  pipeReverse(output: OutputBuffer): OutputBuffer {
+    if (output.buffer.length === 0) return this;
+    this.buffer.push(...output.buffer);
+    output.buffer = [];
+    return this;
   }
 }
