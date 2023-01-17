@@ -24,7 +24,7 @@ Output.println(markup);
 - `<span>` - always printed inline
 - `<br />` - prints a new line character
 
-Additionally trailing white-space characters are not from text inside `<span>` tags but not from `<p>` tags.
+Additionally trailing white-space characters are removed from text inside `<span>` tags but not from `<p>` tags.
 
 ## Supported attributes
 
