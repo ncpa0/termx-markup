@@ -28,7 +28,9 @@ export class Output {
   static {
     try {
       this.globalOutput = new Output();
-    } catch (e) {}
+    } catch (e) {
+      // no-op
+    }
   }
 
   /** Formats the given markup and prints it to the console. */
@@ -84,10 +86,10 @@ export class Output {
 
   private printError(e: any) {
     if (e != null) {
-      this.envPrint(e.toString() + "\n");
+      this.envPrint((e.toString() as string) + "\n");
 
       if (typeof e === "object" && e.stack) {
-        this.envPrint(e.stack + "\n");
+        this.envPrint((e.stack as string) + "\n");
       }
     }
   }

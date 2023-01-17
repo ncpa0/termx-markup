@@ -1,7 +1,7 @@
 /**
  * Creates a html string from the given template literal. Each parameter
  * in the template literal is escaped to not include xml tag characters.
- * 
+ *
  * @example
  *  html`<div>${"<span>hello</span>"}</div>`;
  *  // > <div>&lt;span&gt;hello&lt;/span&gt;</div>
