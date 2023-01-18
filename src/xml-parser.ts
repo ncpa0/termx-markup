@@ -5,6 +5,68 @@ export type XmlObject = {
   content: Array<string | XmlObject>;
 };
 
+export class XmlParserError extends Error {
+  static parsedXml: string;
+
+  static setIsWorkingOn(xml: string) {
+    this.parsedXml = xml;
+  }
+
+  parsedXml = XmlParserError.parsedXml;
+
+  constructor(message: string, public position: number) {
+    super("Invalid XML. " + message);
+  }
+
+  private getPositionCords(): [line: number, column: number] {
+    let lineIndex = 0;
+    let columnIndex = 0;
+    for (let i = 0; i < this.position; i++) {
+      if (this.parsedXml[i] === "\n") {
+        lineIndex++;
+        columnIndex = 0;
+      } else {
+        columnIndex++;
+      }
+    }
+    return [lineIndex, columnIndex];
+  }
+
+  private getStack() {
+    return this.stack ?? "";
+  }
+
+  getPositionPatch() {
+    const [lineIndex, columnIndex] = this.getPositionCords();
+
+    const lines = this.parsedXml.split("\n");
+
+    const patchLine = lines[lineIndex]!;
+
+    const highlightLine = " ".repeat(columnIndex) + "^";
+
+    let result = "";
+
+    if (lineIndex > 1) {
+      result += lines[lineIndex - 2]! + "\n";
+    }
+
+    if (lineIndex > 0) {
+      result += lines[lineIndex - 1]! + "\n";
+    }
+
+    result += patchLine + "\n" + highlightLine;
+
+    return result;
+  }
+
+  toString() {
+    return `${
+      this.message
+    }\n\n${this.getPositionPatch()}\n\n${this.getStack()}`;
+  }
+}
+
 class XmlObjectBuilder {
   isTextNode = false;
   tag = "";
@@ -63,13 +125,9 @@ class XmlBuilder {
     this.node = this.node.getParent()!;
   }
 
-  moveTop() {
-    let next = this.node.getParent();
-    while (next) {
-      this.node = next;
-      next = this.node.getParent();
-    }
-    return this;
+  isTopLevel() {
+    const parent = this.node.getParent();
+    return parent === undefined;
   }
 
   serialize(): XmlObject {
@@ -86,6 +144,8 @@ class XmlBuilder {
 
 /** XML parsing function used internally by the library. */
 export function parseXml(xmlStr: string) {
+  XmlParserError.setIsWorkingOn(xmlStr);
+
   let isInTag = false;
   let isInAttribute = false;
   let isInAttribQuote = false;
@@ -136,6 +196,11 @@ export function parseXml(xmlStr: string) {
           if (xmlStr[i + 1] === '"') {
             isInAttribQuote = true;
             i += 1;
+          } else {
+            throw new XmlParserError(
+              "Attribute values must be enclosed in double quotes.",
+              i + 1
+            );
           }
           break;
         }
@@ -165,8 +230,9 @@ export function parseXml(xmlStr: string) {
           isClosingTag = false;
           isInTag = false;
           if (closeTagName !== xml.node.tag) {
-            throw new Error(
-              `Invalid XML. Closing tag does not match opening tag, expected '${xml.node.tag}' but received '${closeTagName}' at (${i}).`
+            throw new XmlParserError(
+              `Closing tag does not match opening tag, expected '${xml.node.tag}' but found '${closeTagName}'.`,
+              i
             );
           }
           closeTagName = "";
@@ -193,12 +259,14 @@ export function parseXml(xmlStr: string) {
               isInTag = false;
               tagNameRead = false;
               i++;
+              xml.moveUp();
             } else {
-              throw new Error(
-                `Invalid XML. Invalid character encountered at (${i}).`
-              );
+              throw new XmlParserError("Invalid character encountered.", i);
             }
             break;
+          }
+          case "=": {
+            throw new XmlParserError("Invalid character encountered.", i);
           }
           default: {
             isInAttribute = true;
@@ -215,7 +283,7 @@ export function parseXml(xmlStr: string) {
           }
           case ">": {
             if (xml.node.tag.length === 0) {
-              throw new Error(`Invalid XML. No tag name found at (${i}).`);
+              throw new XmlParserError("No tag name found.", i);
             }
             isInTag = false;
             tagNameRead = false;
@@ -226,12 +294,19 @@ export function parseXml(xmlStr: string) {
               isInTag = false;
               tagNameRead = false;
               i++;
+              xml.moveUp();
             } else {
-              throw new Error(
-                `Invalid XML. Invalid character encountered at (${i}).`
-              );
+              throw new XmlParserError("Invalid character encountered.", i);
             }
             break;
+          }
+          case "=": {
+            // = char means this is actually an attribute, not a tag name
+            // but since we are in this case, it means the tag name is empty
+            throw new XmlParserError(
+              "No tag name found.",
+              i - xml.node.tag.length
+            );
           }
           default: {
             xml.node.tag += char;
@@ -269,5 +344,12 @@ export function parseXml(xmlStr: string) {
     isEscaped = false;
   }
 
-  return xml.moveTop().serialize();
+  if (!xml.isTopLevel()) {
+    throw new XmlParserError(
+      `XML closing tag is missing. Expected a close tag for '${xml.node.tag}' before the end of the document.`,
+      xmlStr.length - 1
+    );
+  }
+
+  return xml.serialize();
 }
