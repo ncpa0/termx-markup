@@ -156,8 +156,8 @@ const IS_TAG_NAME_READ = 32;
  *
  * It is only capable of parsing simple XML structures and has no
  * support for most of the XML features like namespaces,
- * comments, CDATA, etc. But in return it is extremely fast.
- * (about 2x faster than the
+ * comments, CDATA, etc. But in return it is extremely fast. (up
+ * to 3x faster than the
  * [fast-xml-parser](https://www.npmjs.com/package/fast-xml-parser))
  */
 export function parseXml(xmlStr: string) {
