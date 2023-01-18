@@ -28,7 +28,8 @@
     "test:lint": "eslint .",
     "test:prettier": "prettier -c ./src && prettier -c ./__tests__",
     "test:tsc": "tsc --noEmit",
-    "build": "node ./scripts/build.cjs"
+    "build": "node ./scripts/build.cjs",
+    "bench": "NODE_PATH=/usr/local/lib/node_modules node ./benchmarks/run-bench.cjs"
   },
   "keywords": [],
   "repository": {

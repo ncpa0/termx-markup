@@ -609,4 +609,354 @@ describe("parseXml", () => {
       expect(err?.toString()).toMatchSnapshot();
     });
   });
+
+  describe("bench sample", () => {
+    const xml = `<any_name attr="https://example.com/somepath">
+    <person id="101">
+        <phone>+122233344550</phone>
+        <name>Jack</name>
+        <phone>+122233344551</phone>
+        <age>33</age>
+        <emptyNode></emptyNode>
+        <booleanNode>false</booleanNode>
+        <booleanNode>true</booleanNode>
+        <selfclosing />
+        <selfclosing with="value" />
+        <married firstTime="No" attr="val 2">Yes</married>
+        <birthday>Wed, 28 Mar 1979 12:13:14 +0300</birthday>
+        <address>
+            <city>New York</city>
+            <street>Park Ave</street>
+            <buildingNo>1</buildingNo>
+            <flatNo>1</flatNo>
+        </address>
+        <address>
+            <city>Boston</city>
+            <street>Centre St</street>
+            <buildingNo>33</buildingNo>
+            <flatNo>24</flatNo>
+        </address>
+    </person>
+    <person id="102">
+        <phone>+122233344553</phone>
+        <name>Boris</name>
+        <phone>+122233344554</phone>
+        <age>34</age>
+        <married firstTime="Yes">Yes</married>
+        <birthday>Mon, 31 Aug 1970 02:03:04 +0300</birthday>
+        <address>
+            <city>Moscow</city>
+            <street>Kahovka</street>
+            <buildingNo>1</buildingNo>
+            <flatNo>2</flatNo>
+        </address>
+        <address>
+            <city>Tula</city>
+            <street>Lenina</street>
+            <buildingNo>3</buildingNo>
+            <flatNo>78</flatNo>
+        </address>
+    </person>
+</any_name>`;
+
+    it("is parsed correctly", () => {
+      const result = parseXml(xml);
+      expect(result).toEqual({
+        tag: "any_name",
+        textNode: false,
+        attributes: [["attr", "https://example.com/somepath"]],
+        content: [
+          "\n    ",
+          {
+            tag: "person",
+            textNode: false,
+            attributes: [["id", "101"]],
+            content: [
+              "\n        ",
+              {
+                tag: "phone",
+                textNode: false,
+                attributes: [],
+                content: ["+122233344550"],
+              },
+              "\n        ",
+              {
+                tag: "name",
+                textNode: false,
+                attributes: [],
+                content: ["Jack"],
+              },
+              "\n        ",
+              {
+                tag: "phone",
+                textNode: false,
+                attributes: [],
+                content: ["+122233344551"],
+              },
+              "\n        ",
+              {
+                tag: "age",
+                textNode: false,
+                attributes: [],
+                content: ["33"],
+              },
+              "\n        ",
+              {
+                tag: "emptyNode",
+                textNode: false,
+                attributes: [],
+                content: [],
+              },
+              "\n        ",
+              {
+                tag: "booleanNode",
+                textNode: false,
+                attributes: [],
+                content: ["false"],
+              },
+              "\n        ",
+              {
+                tag: "booleanNode",
+                textNode: false,
+                attributes: [],
+                content: ["true"],
+              },
+              "\n        ",
+              {
+                tag: "selfclosing",
+                textNode: false,
+                attributes: [],
+                content: [],
+              },
+              "\n        ",
+              {
+                tag: "selfclosing",
+                textNode: false,
+                attributes: [["with", "value"]],
+                content: [],
+              },
+              "\n        ",
+              {
+                tag: "married",
+                textNode: false,
+                attributes: [
+                  ["firstTime", "No"],
+                  ["attr", "val 2"],
+                ],
+                content: ["Yes"],
+              },
+              "\n        ",
+              {
+                tag: "birthday",
+                textNode: false,
+                attributes: [],
+                content: ["Wed, 28 Mar 1979 12:13:14 +0300"],
+              },
+              "\n        ",
+              {
+                tag: "address",
+                textNode: false,
+                attributes: [],
+                content: [
+                  "\n            ",
+                  {
+                    tag: "city",
+                    textNode: false,
+                    attributes: [],
+                    content: ["New York"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "street",
+                    textNode: false,
+                    attributes: [],
+                    content: ["Park Ave"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "buildingNo",
+                    textNode: false,
+                    attributes: [],
+                    content: ["1"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "flatNo",
+                    textNode: false,
+                    attributes: [],
+                    content: ["1"],
+                  },
+                  "\n        ",
+                ],
+              },
+              "\n        ",
+              {
+                tag: "address",
+                textNode: false,
+                attributes: [],
+                content: [
+                  "\n            ",
+                  {
+                    tag: "city",
+                    textNode: false,
+                    attributes: [],
+                    content: ["Boston"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "street",
+                    textNode: false,
+                    attributes: [],
+                    content: ["Centre St"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "buildingNo",
+                    textNode: false,
+                    attributes: [],
+                    content: ["33"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "flatNo",
+                    textNode: false,
+                    attributes: [],
+                    content: ["24"],
+                  },
+                  "\n        ",
+                ],
+              },
+              "\n    ",
+            ],
+          },
+          "\n    ",
+          {
+            tag: "person",
+            textNode: false,
+            attributes: [["id", "102"]],
+            content: [
+              "\n        ",
+              {
+                tag: "phone",
+                textNode: false,
+                attributes: [],
+                content: ["+122233344553"],
+              },
+              "\n        ",
+              {
+                tag: "name",
+                textNode: false,
+                attributes: [],
+                content: ["Boris"],
+              },
+              "\n        ",
+              {
+                tag: "phone",
+                textNode: false,
+                attributes: [],
+                content: ["+122233344554"],
+              },
+              "\n        ",
+              {
+                tag: "age",
+                textNode: false,
+                attributes: [],
+                content: ["34"],
+              },
+              "\n        ",
+              {
+                tag: "married",
+                textNode: false,
+                attributes: [["firstTime", "Yes"]],
+                content: ["Yes"],
+              },
+              "\n        ",
+              {
+                tag: "birthday",
+                textNode: false,
+                attributes: [],
+                content: ["Mon, 31 Aug 1970 02:03:04 +0300"],
+              },
+              "\n        ",
+              {
+                tag: "address",
+                textNode: false,
+                attributes: [],
+                content: [
+                  "\n            ",
+                  {
+                    tag: "city",
+                    textNode: false,
+                    attributes: [],
+                    content: ["Moscow"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "street",
+                    textNode: false,
+                    attributes: [],
+                    content: ["Kahovka"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "buildingNo",
+                    textNode: false,
+                    attributes: [],
+                    content: ["1"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "flatNo",
+                    textNode: false,
+                    attributes: [],
+                    content: ["2"],
+                  },
+                  "\n        ",
+                ],
+              },
+              "\n        ",
+              {
+                tag: "address",
+                textNode: false,
+                attributes: [],
+                content: [
+                  "\n            ",
+                  {
+                    tag: "city",
+                    textNode: false,
+                    attributes: [],
+                    content: ["Tula"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "street",
+                    textNode: false,
+                    attributes: [],
+                    content: ["Lenina"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "buildingNo",
+                    textNode: false,
+                    attributes: [],
+                    content: ["3"],
+                  },
+                  "\n            ",
+                  {
+                    tag: "flatNo",
+                    textNode: false,
+                    attributes: [],
+                    content: ["78"],
+                  },
+                  "\n        ",
+                ],
+              },
+              "\n    ",
+            ],
+          },
+          "\n",
+        ],
+      });
+    });
+  });
 });
