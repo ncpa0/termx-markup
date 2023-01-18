@@ -68,35 +68,47 @@ export class XmlParserError extends Error {
 }
 
 class XmlObjectBuilder {
-  isTextNode = false;
-  tag = "";
-  attributes: Array<[attributeName: string, value: string | boolean]> = [];
-  content: Array<string | XmlObjectBuilder> = [];
+  o: XmlObject = {
+    textNode: false,
+    tag: "",
+    attributes: [],
+    content: [],
+  };
 
-  constructor(private parent?: XmlObjectBuilder) {}
+  content: Array<string | XmlObjectBuilder> = [];
+  lastStringContent = "";
+
+  constructor(public parent?: XmlObjectBuilder) {}
 
   addChild() {
+    if (this.lastStringContent !== "") {
+      this.content.push(this.lastStringContent);
+      this.lastStringContent = "";
+    }
     const child = new XmlObjectBuilder(this);
     this.content.push(child);
     return child;
   }
 
-  getParent() {
-    return this.parent;
+  addChar(char: string) {
+    this.lastStringContent += char;
   }
 
   serialize(): XmlObject {
-    return {
-      textNode: this.isTextNode,
-      tag: this.tag,
-      attributes: this.attributes.slice(),
-      content: this.content.map((c) => {
-        if (typeof c === "string") {
-          return c;
-        }
-        return c.serialize();
-      }),
-    };
+    if (this.lastStringContent !== "") {
+      this.content.push(this.lastStringContent);
+    }
+
+    for (let i = 0; i < this.content.length; i++) {
+      const c = this.content[i]!;
+      if (typeof c === "string") {
+        this.o.content.push(c);
+      } else {
+        this.o.content.push(c.serialize());
+      }
+    }
+
+    return this.o;
   }
 }
 
@@ -105,16 +117,7 @@ class XmlBuilder {
   node: XmlObjectBuilder = new XmlObjectBuilder();
 
   constructor() {
-    this.node.isTextNode = true;
-  }
-
-  addContentChar(char: string) {
-    const lastIndex = this.node.content.length - 1;
-    if (typeof this.node.content[lastIndex] === "string") {
-      (this.node.content[lastIndex] as string) += char;
-    } else {
-      this.node.content.push(char);
-    }
+    this.node.o.textNode = true;
   }
 
   addChildNode() {
@@ -122,18 +125,17 @@ class XmlBuilder {
   }
 
   moveUp() {
-    this.node = this.node.getParent()!;
+    this.node = this.node.parent!;
   }
 
   isTopLevel() {
-    const parent = this.node.getParent();
-    return parent === undefined;
+    return this.node.parent === undefined;
   }
 
   serialize(): XmlObject {
     if (
       this.node.content.length === 1 &&
-      this.node.tag === "" &&
+      this.node.o.tag === "" &&
       typeof this.node.content[0] !== "string"
     ) {
       return this.node.content[0]!.serialize();
@@ -180,7 +182,7 @@ export function parseXml(xmlStr: string) {
         switch (char) {
           case '"': {
             isInAttribQuote = false;
-            xml.node.attributes.push([
+            xml.node.o.attributes.push([
               currentAttributeName,
               currentAttributeValue,
             ]);
@@ -214,14 +216,14 @@ export function parseXml(xmlStr: string) {
         }
         case " ": {
           isInAttribute = false;
-          xml.node.attributes.push([currentAttributeName, true]);
+          xml.node.o.attributes.push([currentAttributeName, true]);
           currentAttributeName = "";
           break;
         }
         case ">": {
           isInTag = false;
           isInAttribute = false;
-          xml.node.attributes.push([currentAttributeName, true]);
+          xml.node.o.attributes.push([currentAttributeName, true]);
           currentAttributeName = "";
           break;
         }
@@ -237,9 +239,9 @@ export function parseXml(xmlStr: string) {
         case ">": {
           isClosingTag = false;
           isInTag = false;
-          if (closeTagName !== xml.node.tag) {
+          if (closeTagName !== xml.node.o.tag) {
             throw new XmlParserError(
-              `Closing tag does not match opening tag, expected '${xml.node.tag}' but found '${closeTagName}'.`,
+              `Closing tag does not match opening tag, expected '${xml.node.o.tag}' but found '${closeTagName}'.`,
               i
             );
           }
@@ -284,13 +286,13 @@ export function parseXml(xmlStr: string) {
       } else {
         switch (char) {
           case " ": {
-            if (xml.node.tag.length > 0) {
+            if (xml.node.o.tag.length > 0) {
               tagNameRead = true;
             }
             break;
           }
           case ">": {
-            if (xml.node.tag.length === 0) {
+            if (xml.node.o.tag.length === 0) {
               throw new XmlParserError("No tag name found.", i);
             }
             isInTag = false;
@@ -313,17 +315,17 @@ export function parseXml(xmlStr: string) {
             // but since we are in this case, it means the tag name is empty
             throw new XmlParserError(
               "No tag name found.",
-              i - xml.node.tag.length
+              i - xml.node.o.tag.length
             );
           }
           default: {
-            xml.node.tag += char;
+            xml.node.o.tag += char;
           }
         }
       }
     } else {
       if (isEscaped) {
-        xml.addContentChar(char);
+        xml.node.addChar(char);
       } else {
         switch (char) {
           case "<": {
@@ -343,7 +345,7 @@ export function parseXml(xmlStr: string) {
             continue;
           }
           default: {
-            xml.addContentChar(char);
+            xml.node.addChar(char);
           }
         }
       }
@@ -354,7 +356,7 @@ export function parseXml(xmlStr: string) {
 
   if (!xml.isTopLevel()) {
     throw new XmlParserError(
-      `XML closing tag is missing. Expected a close tag for '${xml.node.tag}' before the end of the document.`,
+      `XML closing tag is missing. Expected a close tag for '${xml.node.o.tag}' before the end of the document.`,
       xmlStr.length - 1
     );
   }
