@@ -156,138 +156,61 @@ class XmlBuilder {
 export function parseXml(xmlStr: string) {
   XmlParserError.setIsWorkingOn(xmlStr);
 
-  let isInTag = false;
-  let isInAttribute = false;
-  let isInAttribQuote = false;
-  let isEscaped = false;
-
-  let isClosingTag = false;
-
-  let tagNameRead = false;
+  const xml = new XmlBuilder();
 
   let currentAttributeName = "";
   let currentAttributeValue = "";
 
   let closeTagName = "";
 
-  const xml = new XmlBuilder();
+  const IS_IN_TAG = 1;
+  const IS_IN_ATTRIBUTE = 2;
+  const IS_IN_ATTRIBUTE_QUOTE = 4;
+  const IS_ESCAPED = 8;
+  const IS_CLOSING_TAG = 16;
+  const IS_TAG_NAME_READ = 32;
+
+  let state = 0;
 
   for (let i = 0; i < xmlStr.length; i++) {
     const char = xmlStr[i]!;
 
-    if (isInAttribQuote) {
-      if (isEscaped) {
-        currentAttributeValue += char;
-      } else {
+    switch (state) {
+      case 0: {
         switch (char) {
-          case '"': {
-            isInAttribQuote = false;
-            xml.node.o.attributes.push([
-              currentAttributeName,
-              currentAttributeValue,
-            ]);
-            currentAttributeName = "";
-            currentAttributeValue = "";
-            break;
-          }
-          case "\\": {
-            isEscaped = true;
-            continue;
-          }
-          default: {
-            currentAttributeValue += char;
-          }
-        }
-      }
-    } else if (isInAttribute) {
-      switch (char) {
-        case "=": {
-          isInAttribute = false;
-          if (xmlStr[i + 1] === '"') {
-            isInAttribQuote = true;
-            i += 1;
-          } else {
-            throw new XmlParserError(
-              "Attribute values must be enclosed in double quotes.",
-              i + 1
-            );
-          }
-          break;
-        }
-        case " ": {
-          isInAttribute = false;
-          xml.node.o.attributes.push([currentAttributeName, true]);
-          currentAttributeName = "";
-          break;
-        }
-        case ">": {
-          isInTag = false;
-          isInAttribute = false;
-          xml.node.o.attributes.push([currentAttributeName, true]);
-          currentAttributeName = "";
-          break;
-        }
-        default: {
-          currentAttributeName += char;
-        }
-      }
-    } else if (isClosingTag) {
-      switch (char) {
-        case " ": {
-          break;
-        }
-        case ">": {
-          isClosingTag = false;
-          isInTag = false;
-          if (closeTagName !== xml.node.o.tag) {
-            throw new XmlParserError(
-              `Closing tag does not match opening tag, expected '${xml.node.o.tag}' but found '${closeTagName}'.`,
-              i
-            );
-          }
-          closeTagName = "";
-          xml.moveUp();
-          break;
-        }
-        default: {
-          closeTagName += char;
-        }
-      }
-    } else if (isInTag) {
-      if (tagNameRead) {
-        switch (char) {
-          case " ": {
-            break;
-          }
-          case ">": {
-            isInTag = false;
-            tagNameRead = false;
-            break;
-          }
-          case "/": {
-            if (xmlStr[i + 1] === ">") {
-              isInTag = false;
-              tagNameRead = false;
+          case "<": {
+            state = state | IS_IN_TAG;
+
+            if (xmlStr[i + 1] === "/") {
+              state = state | IS_CLOSING_TAG;
               i++;
-              xml.moveUp();
             } else {
-              throw new XmlParserError("Invalid character encountered.", i);
+              xml.addChildNode();
             }
             break;
           }
-          case "=": {
-            throw new XmlParserError("Invalid character encountered.", i);
+          case "\\": {
+            state = state | IS_ESCAPED;
+            break;
           }
           default: {
-            isInAttribute = true;
-            currentAttributeName += char;
+            xml.node.addChar(char);
           }
         }
-      } else {
+        break;
+      }
+      // IS_ESCAPED
+      case 8: {
+        xml.node.addChar(char);
+        state = state & ~IS_ESCAPED;
+        break;
+      }
+      // IS_IN_TAG
+      case 1: {
         switch (char) {
           case " ": {
             if (xml.node.o.tag.length > 0) {
-              tagNameRead = true;
+              state = state | IS_TAG_NAME_READ;
             }
             break;
           }
@@ -295,14 +218,12 @@ export function parseXml(xmlStr: string) {
             if (xml.node.o.tag.length === 0) {
               throw new XmlParserError("No tag name found.", i);
             }
-            isInTag = false;
-            tagNameRead = false;
+            state = state & ~IS_IN_TAG;
             break;
           }
           case "/": {
             if (xmlStr[i + 1] === ">") {
-              isInTag = false;
-              tagNameRead = false;
+              state = state & ~IS_IN_TAG;
               i++;
               xml.moveUp();
             } else {
@@ -322,36 +243,126 @@ export function parseXml(xmlStr: string) {
             xml.node.o.tag += char;
           }
         }
+        break;
       }
-    } else {
-      if (isEscaped) {
-        xml.node.addChar(char);
-      } else {
+      // IS_IN_TAG | IS_TAG_NAME_READ
+      case 33: {
         switch (char) {
-          case "<": {
-            isInTag = true;
-            tagNameRead = false;
-            isClosingTag = xmlStr[i + 1] === "/";
-
-            if (!isClosingTag) {
-              xml.addChildNode();
+          case " ": {
+            break;
+          }
+          case ">": {
+            state = state & ~IS_IN_TAG & ~IS_TAG_NAME_READ;
+            break;
+          }
+          case "/": {
+            if (xmlStr[i + 1] === ">") {
+              state = state & ~IS_IN_TAG & ~IS_TAG_NAME_READ;
+              i++;
+              xml.moveUp();
             } else {
-              i += 1;
+              throw new XmlParserError("Invalid character encountered.", i);
             }
             break;
           }
-          case "\\": {
-            isEscaped = true;
-            continue;
+          case "=": {
+            throw new XmlParserError("Invalid character encountered.", i);
           }
           default: {
-            xml.node.addChar(char);
+            state = state | IS_IN_ATTRIBUTE;
+            currentAttributeName += char;
           }
         }
+        break;
+      }
+      // IS_IN_TAG | IS_CLOSING_TAG
+      case 17: {
+        switch (char) {
+          case " ": {
+            break;
+          }
+          case ">": {
+            state = state & ~IS_IN_TAG & ~IS_CLOSING_TAG;
+            if (closeTagName !== xml.node.o.tag) {
+              throw new XmlParserError(
+                `Closing tag does not match opening tag, expected '${xml.node.o.tag}' but found '${closeTagName}'.`,
+                i
+              );
+            }
+            closeTagName = "";
+            xml.moveUp();
+            break;
+          }
+          default: {
+            closeTagName += char;
+          }
+        }
+        break;
+      }
+      // IS_IN_TAG | IS_TAG_NAME_READ | IS_IN_ATTRIBUTE
+      case 35: {
+        switch (char) {
+          case "=": {
+            state = state & ~IS_IN_ATTRIBUTE;
+            if (xmlStr[i + 1] === '"') {
+              state = state | IS_IN_ATTRIBUTE_QUOTE;
+              i += 1;
+            } else {
+              throw new XmlParserError(
+                "Attribute values must be enclosed in double quotes.",
+                i + 1
+              );
+            }
+            break;
+          }
+          case " ": {
+            state = state & ~IS_IN_ATTRIBUTE;
+            xml.node.o.attributes.push([currentAttributeName, true]);
+            currentAttributeName = "";
+            break;
+          }
+          case ">": {
+            state = state & ~IS_IN_TAG & ~IS_IN_ATTRIBUTE & ~IS_TAG_NAME_READ;
+            xml.node.o.attributes.push([currentAttributeName, true]);
+            currentAttributeName = "";
+            break;
+          }
+          default: {
+            currentAttributeName += char;
+          }
+        }
+        break;
+      }
+      // IS_IN_TAG | IS_TAG_NAME_READ | IS_IN_ATTRIBUTE_QUOTE
+      case 37: {
+        switch (char) {
+          case '"': {
+            state = state & ~IS_IN_ATTRIBUTE_QUOTE;
+            xml.node.o.attributes.push([
+              currentAttributeName,
+              currentAttributeValue,
+            ]);
+            currentAttributeName = "";
+            currentAttributeValue = "";
+            break;
+          }
+          case "\\": {
+            state = state | IS_ESCAPED;
+            break;
+          }
+          default: {
+            currentAttributeValue += char;
+          }
+        }
+        break;
+      }
+      // IS_IN_TAG | IS_TAG_NAME_READ | IS_IN_ATTRIBUTE_QUOTE | IS_ESCAPED
+      case 45: {
+        currentAttributeValue += char;
+        state = state & ~IS_ESCAPED;
+        break;
       }
     }
-
-    isEscaped = false;
   }
 
   if (!xml.isTopLevel()) {
