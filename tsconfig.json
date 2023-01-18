@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "commonjs",
-    "jsx": "react",
+    "target": "ESNext",
+    "module": "ES6",
     "declaration": true,
     "outDir": "./dist",
     "rootDir": "./src",
@@ -14,7 +13,5 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }

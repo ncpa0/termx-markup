@@ -2,11 +2,13 @@
   "name": "termx-markup",
   "packageManager": "yarn@3.3.1",
   "devDependencies": {
+    "@ncpa0cpl/nodepack": "^2.0.1",
     "@swc/core": "latest",
     "@swc/jest": "latest",
     "@types/jest": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
+    "esbuild": "^0.17.2",
     "eslint": "latest",
     "eslint-config-prettier": "latest",
     "eslint-plugin-prettier": "latest",
@@ -26,7 +28,7 @@
     "test:lint": "eslint .",
     "test:prettier": "prettier -c ./src && prettier -c ./__tests__",
     "test:tsc": "tsc --noEmit",
-    "build": "tsc"
+    "build": "node ./scripts/build.cjs"
   },
   "keywords": [],
   "repository": {
