@@ -144,6 +144,13 @@ class XmlBuilder {
   }
 }
 
+const IS_IN_TAG = 1;
+const IS_IN_ATTRIBUTE = 2;
+const IS_IN_ATTRIBUTE_QUOTE = 4;
+const IS_ESCAPED = 8;
+const IS_CLOSING_TAG = 16;
+const IS_TAG_NAME_READ = 32;
+
 /**
  * XML parsing function used internally by the library.
  *
@@ -162,13 +169,6 @@ export function parseXml(xmlStr: string) {
   let currentAttributeValue = "";
 
   let closeTagName = "";
-
-  const IS_IN_TAG = 1;
-  const IS_IN_ATTRIBUTE = 2;
-  const IS_IN_ATTRIBUTE_QUOTE = 4;
-  const IS_ESCAPED = 8;
-  const IS_CLOSING_TAG = 16;
-  const IS_TAG_NAME_READ = 32;
 
   let state = 0;
 
