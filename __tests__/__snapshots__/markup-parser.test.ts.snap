@@ -1,0 +1,120 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`parseMarkup negative scenarios should correctly format the error message for multiline xml 1`] = `
+"Invalid Markup. Closing tag does not match opening tag, expected 'p' but found 'span'.
+
+      <root>
+        <span>Hello</span>
+        <p>World</span>
+                      ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw an error if a closing tag is missing 1`] = `
+"Invalid Markup. Closing tag is missing. Expected a close tag for 'p' before the end of the document.
+
+<p>Hello
+       ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw an error if a closing tag is missing in a nested structure 1`] = `
+"Invalid Markup. Closing tag is missing. Expected a close tag for 'span' before the end of the document.
+
+<span>Hello<p>World</p>
+                      ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw an error if the closing tag is not matching the opening tag 1`] = `
+"Invalid Markup. Closing tag does not match opening tag, expected 'p' but found 'span'.
+
+<p>Hello</span>
+              ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw an error if the tag name is empty 1`] = `
+"Invalid Markup. No tag name found.
+
+<>Hello</>
+ ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw an error if the tag name is empty but an attribute is set 1`] = `
+"Invalid Markup. No tag name found.
+
+< class="name">Hello</>
+  ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw an error when attribute value does not have a quote at the end 1`] = `
+"Invalid Markup. Closing tag is missing. Expected a close tag for 'p' before the end of the document.
+
+<p bold="true>Hello</p>
+                      ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw an error when attribute value is not inside quotes 1`] = `
+"Invalid Markup. Attribute values must be enclosed in double quotes.
+
+<p bold=true>Hello</p>
+        ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw an error when encountering = character inside a tag 1`] = `
+"Invalid Markup. Invalid character encountered.
+
+<p = >Hello</p>
+   ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw an error when encountering = character inside a tag between attributes 1`] = `
+"Invalid Markup. Invalid character encountered.
+
+<p bold = invert>Hello</p>
+        ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw when encountering / character inside a tag 1`] = `
+"Invalid Markup. Invalid character encountered.
+
+<p / >Hello</p>
+   ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw when encountering / character inside a tag between attributes 1`] = `
+"Invalid Markup. Invalid character encountered.
+
+<p bold / invert >Hello</p>
+        ^
+
+at ./index:1:1"
+`;
+
+exports[`parseMarkup negative scenarios should throw when encountering / character inside a tag name 1`] = `
+"Invalid Markup. Invalid character encountered.
+
+<sp/an>Hello</sp/an>
+   ^
+
+at ./index:1:1"
+`;

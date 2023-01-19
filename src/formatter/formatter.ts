@@ -1,8 +1,8 @@
 import { TermxBgColor } from "../colors/termx-bg-color";
 import { TermxFontColor } from "../colors/termx-font-colors";
 import { desanitizeHtml } from "../html-tag";
-import type { XmlObject } from "../xml-parser";
-import { parseXml } from "../xml-parser";
+import type { MarkupNode } from "../markup-parser";
+import { parseMarkup } from "../markup-parser";
 import type { Scope } from "./scope-tracker";
 import { ScopeTracker } from "./scope-tracker";
 
@@ -16,7 +16,8 @@ const Inverted = `${escape}[7m`;
 const StrikeThrough = `${escape}[9m`;
 
 /**
- * Formats XML into a string that can be printed to the terminal.
+ * Formats given Markup into a string that can be printed to the
+ * terminal.
  *
  * @example
  *   ```ts
@@ -48,31 +49,33 @@ export class MarkupFormatter {
     TermxFontColor.define(name, ...args);
   }
 
-  static format(text: string): string {
-    const xml = parseXml(text);
-    return TermxFontColor.get("unset") + desanitizeHtml(this.formatXml(xml));
+  static format(markup: string): string {
+    const node = parseMarkup(markup);
+    return (
+      TermxFontColor.get("unset") + desanitizeHtml(this.formatMarkup(node))
+    );
   }
 
-  private static formatXml(xml: XmlObject): string {
+  private static formatMarkup(node: MarkupNode): string {
     let result = "";
 
-    switch (xml.tag) {
+    switch (node.tag) {
       case "pre":
       case "line":
       case "span": {
-        ScopeTracker.enterScope(this.createScope(xml));
+        ScopeTracker.enterScope(this.createScope(node));
 
         result +=
           this.scopeToTermMarks(ScopeTracker.currentScope) +
           this.join(
-            xml.content.map((content) =>
-              this.mapContents(content, xml.tag === "pre")
+            node.content.map((content) =>
+              this.mapContents(content, node.tag === "pre")
             )
           );
 
         ScopeTracker.exitScope();
 
-        if (xml.tag === "line") {
+        if (node.tag === "line") {
           result += "\n";
         }
 
@@ -88,13 +91,13 @@ export class MarkupFormatter {
       }
       case "": {
         result += this.join(
-          xml.content.map((content) => this.mapContents(content))
+          node.content.map((content) => this.mapContents(content))
         );
         return result;
       }
     }
 
-    throw new Error(`Invalid tag: <${xml.tag}>`);
+    throw new Error(`Invalid tag: <${node.tag}>`);
   }
 
   private static join(strings: string[]) {
@@ -105,7 +108,7 @@ export class MarkupFormatter {
     return result;
   }
 
-  private static mapContents(content: XmlObject | string, pre?: boolean) {
+  private static mapContents(content: MarkupNode | string, pre?: boolean) {
     if (typeof content === "string") {
       if (pre) {
         return content;
@@ -113,7 +116,7 @@ export class MarkupFormatter {
       return content.replaceAll("\n", "").trim();
     }
 
-    return this.formatXml(content);
+    return this.formatMarkup(content);
   }
 
   private static scopeToTermMarks(scope: Scope): string {
@@ -158,14 +161,14 @@ export class MarkupFormatter {
     return result;
   }
 
-  private static createScope(xml: XmlObject): Scope {
+  private static createScope(node: MarkupNode): Scope {
     const scope: Scope = { ...ScopeTracker.currentScope };
 
-    if (xml.tag) {
-      scope.parentTag = xml.tag;
+    if (node.tag) {
+      scope.parentTag = node.tag;
     }
 
-    for (const [name, value] of xml.attributes) {
+    for (const [name, value] of node.attributes) {
       switch (name) {
         case "color":
           scope.color = as(value, "string");

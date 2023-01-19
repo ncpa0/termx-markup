@@ -4,7 +4,7 @@ const path = require("path");
 const Bench = require("benchmark");
 const fxp = require("fast-xml-parser");
 const xml2js = require("xml2js");
-const { parseXml } = require("../dist/cjs/index.cjs");
+const { parseMarkup } = require("../dist/cjs/index.cjs");
 
 const FxpParser = new fxp.XMLParser({
   preserveOrder: true,
@@ -37,7 +37,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const runSuiteForSample = (name, sample) => {
   return new Promise((r) => {
     const suite = new Bench.Suite(
-      `\u001b[1m\u001b[37mXML Parser benchmark, sample: \u001b[33m${name}\u001b[0m`
+      `\u001b[1m\u001b[37mMarkup Parser benchmark, sample: \u001b[33m${name}\u001b[0m`
     );
     suite
       .add("fast-xml-parser", function () {
@@ -46,8 +46,8 @@ const runSuiteForSample = (name, sample) => {
       .add("xml2js", function () {
         xml2js.parseString(sample);
       })
-      .add("parseXml", function () {
-        parseXml(sample);
+      .add("parseMarkup", function () {
+        parseMarkup(sample);
       })
       .on("start", function () {
         console.log("Running Suite: " + this.name);
