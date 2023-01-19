@@ -20,7 +20,15 @@
     "typescript": "latest"
   },
   "version": "1.0.0",
-  "main": "./dist/index.js",
+  "main": "./dist/legacy/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/cjs/index.cjs"
+    }
+  },
   "scripts": {
     "fix:lint": "eslint --fix .",
     "fix:prettier": "prettier -w ./src .",
@@ -31,14 +39,27 @@
     "build": "node ./scripts/build.cjs",
     "bench": "NODE_PATH=/usr/local/lib/node_modules node ./benchmarks/run-bench.cjs"
   },
-  "keywords": [],
+  "keywords": [
+    "markup",
+    "html",
+    "xml",
+    "color",
+    "ansi",
+    "terminal",
+    "cli",
+    "console",
+    "format",
+    "formatting",
+    "text",
+    "string"
+  ],
   "repository": {
-    "url": ""
+    "url": "https://github.com/ncpa0cpl/termx-markup"
   },
-  "description": "",
+  "description": "Markup based text formatting for terminal.",
   "license": "MIT",
   "author": {
-    "name": "Szymon Bretner",
-    "email": ""
+    "name": "Szymon Bretner (ncpa0cpl)",
+    "email": "szymonb21@gmail.com"
   }
 }
