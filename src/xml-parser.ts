@@ -6,15 +6,11 @@ export type XmlObject = {
 };
 
 export class XmlParserError extends Error {
-  static parsedXml: string;
-
-  static setIsWorkingOn(xml: string) {
-    this.parsedXml = xml;
-  }
-
-  parsedXml = XmlParserError.parsedXml;
-
-  constructor(message: string, public position: number) {
+  constructor(
+    public parsedXml: string,
+    public position: number,
+    message: string
+  ) {
     super("Invalid XML. " + message);
   }
 
@@ -81,7 +77,7 @@ class XmlObjectBuilder {
   constructor(public parent?: XmlObjectBuilder) {}
 
   addChild() {
-    if (this.lastStringContent !== "") {
+    if (this.lastStringContent.length) {
       this.content.push(this.lastStringContent);
       this.lastStringContent = "";
     }
@@ -95,10 +91,6 @@ class XmlObjectBuilder {
   }
 
   serialize(): XmlObject {
-    if (this.lastStringContent !== "") {
-      this.content.push(this.lastStringContent);
-    }
-
     for (let i = 0; i < this.content.length; i++) {
       const c = this.content[i]!;
       if (typeof c === "string") {
@@ -106,6 +98,10 @@ class XmlObjectBuilder {
       } else {
         this.o.content.push(c.serialize());
       }
+    }
+
+    if (this.lastStringContent.length) {
+      this.o.content.push(this.lastStringContent);
     }
 
     return this.o;
@@ -151,6 +147,13 @@ const IS_ESCAPED = 8;
 const IS_CLOSING_TAG = 16;
 const IS_TAG_NAME_READ = 32;
 
+const NOT_IS_IN_TAG = ~IS_IN_TAG;
+const NOT_IS_IN_ATTRIBUTE = ~IS_IN_ATTRIBUTE;
+const NOT_IS_IN_ATTRIBUTE_QUOTE = ~IS_IN_ATTRIBUTE_QUOTE;
+const NOT_IS_ESCAPED = ~IS_ESCAPED;
+const NOT_IS_CLOSING_TAG = ~IS_CLOSING_TAG;
+const NOT_IS_TAG_NAME_READ = ~IS_TAG_NAME_READ;
+
 /**
  * XML parsing function used internally by the library.
  *
@@ -161,8 +164,6 @@ const IS_TAG_NAME_READ = 32;
  * [fast-xml-parser](https://www.npmjs.com/package/fast-xml-parser))
  */
 export function parseXml(xmlStr: string) {
-  XmlParserError.setIsWorkingOn(xmlStr);
-
   const xml = new XmlBuilder();
 
   let currentAttributeName = "";
@@ -187,22 +188,20 @@ export function parseXml(xmlStr: string) {
             } else {
               xml.addChildNode();
             }
-            break;
+            continue;
           }
           case "\\": {
             state = state | IS_ESCAPED;
-            break;
-          }
-          default: {
-            xml.node.addChar(char);
+            continue;
           }
         }
+        xml.node.addChar(char);
         break;
       }
       // IS_ESCAPED
       case 8: {
         xml.node.addChar(char);
-        state = state & ~IS_ESCAPED;
+        state = state & NOT_IS_ESCAPED;
         break;
       }
       // IS_IN_TAG
@@ -212,154 +211,163 @@ export function parseXml(xmlStr: string) {
             if (xml.node.o.tag.length > 0) {
               state = state | IS_TAG_NAME_READ;
             }
-            break;
+            continue;
           }
           case ">": {
             if (xml.node.o.tag.length === 0) {
-              throw new XmlParserError("No tag name found.", i);
+              throw new XmlParserError(xmlStr, i, "No tag name found.");
             }
-            state = state & ~IS_IN_TAG;
-            break;
+            state = state & NOT_IS_IN_TAG;
+            continue;
           }
           case "/": {
             if (xmlStr[i + 1] === ">") {
-              state = state & ~IS_IN_TAG;
+              state = state & NOT_IS_IN_TAG;
               i++;
               xml.moveUp();
             } else {
-              throw new XmlParserError("Invalid character encountered.", i);
+              throw new XmlParserError(
+                xmlStr,
+                i,
+                "Invalid character encountered."
+              );
             }
-            break;
+            continue;
           }
           case "=": {
             // = char means this is actually an attribute, not a tag name
             // but since we are in this case, it means the tag name is empty
             throw new XmlParserError(
-              "No tag name found.",
-              i - xml.node.o.tag.length
+              xmlStr,
+              i - xml.node.o.tag.length,
+              "No tag name found."
             );
           }
-          default: {
-            xml.node.o.tag += char;
-          }
         }
+        xml.node.o.tag += char;
         break;
       }
       // IS_IN_TAG | IS_TAG_NAME_READ
       case 33: {
         switch (char) {
           case " ": {
-            break;
+            continue;
           }
           case ">": {
-            state = state & ~IS_IN_TAG & ~IS_TAG_NAME_READ;
-            break;
+            state = state & NOT_IS_IN_TAG & NOT_IS_TAG_NAME_READ;
+            continue;
           }
           case "/": {
             if (xmlStr[i + 1] === ">") {
-              state = state & ~IS_IN_TAG & ~IS_TAG_NAME_READ;
+              state = state & NOT_IS_IN_TAG & NOT_IS_TAG_NAME_READ;
               i++;
               xml.moveUp();
             } else {
-              throw new XmlParserError("Invalid character encountered.", i);
+              throw new XmlParserError(
+                xmlStr,
+                i,
+                "Invalid character encountered."
+              );
             }
-            break;
+            continue;
           }
           case "=": {
-            throw new XmlParserError("Invalid character encountered.", i);
-          }
-          default: {
-            state = state | IS_IN_ATTRIBUTE;
-            currentAttributeName += char;
+            throw new XmlParserError(
+              xmlStr,
+              i,
+              "Invalid character encountered."
+            );
           }
         }
+        state = state | IS_IN_ATTRIBUTE;
+        currentAttributeName += char;
         break;
       }
       // IS_IN_TAG | IS_CLOSING_TAG
       case 17: {
         switch (char) {
           case " ": {
-            break;
+            continue;
           }
           case ">": {
-            state = state & ~IS_IN_TAG & ~IS_CLOSING_TAG;
+            state = state & NOT_IS_IN_TAG & NOT_IS_CLOSING_TAG;
             if (closeTagName !== xml.node.o.tag) {
               throw new XmlParserError(
-                `Closing tag does not match opening tag, expected '${xml.node.o.tag}' but found '${closeTagName}'.`,
-                i
+                xmlStr,
+                i,
+                `Closing tag does not match opening tag, expected '${xml.node.o.tag}' but found '${closeTagName}'.`
               );
             }
             closeTagName = "";
             xml.moveUp();
-            break;
-          }
-          default: {
-            closeTagName += char;
+            continue;
           }
         }
+        closeTagName += char;
         break;
       }
       // IS_IN_TAG | IS_TAG_NAME_READ | IS_IN_ATTRIBUTE
       case 35: {
         switch (char) {
           case "=": {
-            state = state & ~IS_IN_ATTRIBUTE;
+            state = state & NOT_IS_IN_ATTRIBUTE;
             if (xmlStr[i + 1] === '"') {
               state = state | IS_IN_ATTRIBUTE_QUOTE;
               i += 1;
             } else {
               throw new XmlParserError(
-                "Attribute values must be enclosed in double quotes.",
-                i + 1
+                xmlStr,
+                i + 1,
+                "Attribute values must be enclosed in double quotes."
               );
             }
-            break;
+            continue;
           }
           case " ": {
-            state = state & ~IS_IN_ATTRIBUTE;
+            state = state & NOT_IS_IN_ATTRIBUTE;
             xml.node.o.attributes.push([currentAttributeName, true]);
             currentAttributeName = "";
-            break;
+            continue;
           }
           case ">": {
-            state = state & ~IS_IN_TAG & ~IS_IN_ATTRIBUTE & ~IS_TAG_NAME_READ;
+            state =
+              state &
+              NOT_IS_IN_TAG &
+              NOT_IS_IN_ATTRIBUTE &
+              NOT_IS_TAG_NAME_READ;
             xml.node.o.attributes.push([currentAttributeName, true]);
             currentAttributeName = "";
-            break;
-          }
-          default: {
-            currentAttributeName += char;
+            continue;
           }
         }
+        currentAttributeName += char;
         break;
       }
       // IS_IN_TAG | IS_TAG_NAME_READ | IS_IN_ATTRIBUTE_QUOTE
       case 37: {
         switch (char) {
           case '"': {
-            state = state & ~IS_IN_ATTRIBUTE_QUOTE;
+            state = state & NOT_IS_IN_ATTRIBUTE_QUOTE;
             xml.node.o.attributes.push([
               currentAttributeName,
               currentAttributeValue,
             ]);
             currentAttributeName = "";
             currentAttributeValue = "";
-            break;
+            continue;
           }
           case "\\": {
             state = state | IS_ESCAPED;
-            break;
-          }
-          default: {
-            currentAttributeValue += char;
+            continue;
           }
         }
+        currentAttributeValue += char;
         break;
       }
       // IS_IN_TAG | IS_TAG_NAME_READ | IS_IN_ATTRIBUTE_QUOTE | IS_ESCAPED
       case 45: {
         currentAttributeValue += char;
-        state = state & ~IS_ESCAPED;
+        state = state & NOT_IS_ESCAPED;
         break;
       }
     }
@@ -367,8 +375,9 @@ export function parseXml(xmlStr: string) {
 
   if (!xml.isTopLevel()) {
     throw new XmlParserError(
-      `XML closing tag is missing. Expected a close tag for '${xml.node.o.tag}' before the end of the document.`,
-      xmlStr.length - 1
+      xmlStr,
+      xmlStr.length - 1,
+      `XML closing tag is missing. Expected a close tag for '${xml.node.o.tag}' before the end of the document.`
     );
   }
 
