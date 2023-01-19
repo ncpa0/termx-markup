@@ -1,0 +1,35 @@
+name: Build Test
+
+on:
+  push:
+    branches: ["master"]
+
+env:
+  NPM_TOKEN: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: master
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+      - uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: install
+      - uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: test:tsc
+      - uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: test:lint
+      - uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: test:prettier
+      - uses: borales/actions-yarn@v3.0.0
+        with:
+          cmd: test:jest
