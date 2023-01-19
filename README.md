@@ -10,7 +10,11 @@ import { Output, html } from "termx-markup";
 Output.setDefaultPrintMethod(console.log); // (optional) print using console.log
 
 const markup = html`
-  <p bold color="red">Hello <span color="blue">in my</span> world!</p>
+  <span bold color="red">
+    Hello
+    <pre color="blue"> in my </pre>
+    world!
+  </span>
 `;
 
 Output.println(markup);
@@ -26,7 +30,11 @@ Output.println(markup);
 import { MarkupFormatter, html } from "termx-markup";
 
 const markup = html`
-  <p color="red">Hello <span color="blue">in my</span> world!</p>
+  <span color="red">
+    Hello
+    <pre color="blue"> in my </pre>
+    world!
+  </span>
 `;
 
 const formatted = MarkupFormatter.format(markup);
@@ -49,9 +57,9 @@ MarkupFormatter.defineColor("mauve", "#E0B0FF");
 MarkupFormatter.defineColor("teal", { r: 0, g: 128, b: 128 });
 
 const markup = html`
-  <p color="burgundy">Burgundy</p>
-  <p color="mauve">Mauve</p>
-  <p color="teal">Teal</p>
+  <line color="burgundy">Burgundy</line>
+  <line color="mauve">Mauve</line>
+  <line color="teal">Teal</line>
 `;
 
 Output.print(markup);
@@ -63,17 +71,22 @@ Output.print(markup);
 
 ## Supported tags
 
-- `<p>` - printed with a trailing new line character, unless it's the last tag
-- `<span>` - always printed inline
+- `<span>` - regular text, trims white-space characters and removes end-line characters
+- `<line>` - same as span, but prints a new line character at the end
+- `<pre>` - preformatted text, all white-space characters will be preserved
 - `<br />` - prints a new line character
-
-Additionally trailing white-space characters are removed from text inside `<span>` tags but not from `<p>` tags.
 
 ## Supported attributes
 
-- `color` - color of the text
-- `bg` - background color of the text
-- `bold` - bold text
+- `color` - color of the text (css-like rgb or a color name)
+- `bg` - background color of the text (css-like rgb or a color name)
+- `bold` - bold text (boolean)
+- `dim` - dimmed text (boolean)
+- `italic` - italic text (boolean)
+- `underscore` - underlined text (boolean)
+- `blink` - blinking text (boolean)
+- `invert` - inverse color text (boolean)
+- `strike` - strike-through text (boolean)
 
 ## Default available colors
 

@@ -8,6 +8,12 @@ import { ScopeTracker } from "./scope-tracker";
 
 const escape = "\u001b";
 const Bold = `${escape}[1m`;
+const Dimmed = `${escape}[2m`;
+const Italic = `${escape}[3m`;
+const Underscore = `${escape}[4m`;
+const Blink = `${escape}[5m`;
+const Inverted = `${escape}[7m`;
+const StrikeThrough = `${escape}[9m`;
 
 /**
  * Formats XML into a string that can be printed to the terminal.
@@ -47,92 +53,71 @@ export class MarkupFormatter {
     return TermxFontColor.get("unset") + desanitizeHtml(this.formatXml(xml));
   }
 
-  private static formatXml(xml: XmlObject, isLast = true): string {
+  private static formatXml(xml: XmlObject): string {
     let result = "";
 
     switch (xml.tag) {
-      case "span":
-      case "p": {
-        const parentTag = ScopeTracker.currentScope.parentTag;
-
+      case "pre":
+      case "line":
+      case "span": {
         ScopeTracker.enterScope(this.createScope(xml));
 
         result +=
           this.scopeToTermMarks(ScopeTracker.currentScope) +
-          xml.content
-            .map((content, index) => {
-              if (typeof content === "string") {
-                const shouldTrim = xml.textNode || xml.tag === "span";
-                return shouldTrim ? content.trim() : content;
-              }
-
-              const isLast = this.isLastTag(index, xml.content);
-              return this.formatXml(content, isLast);
-            })
-            .join("");
+          this.join(
+            xml.content.map((content) =>
+              this.mapContents(content, xml.tag === "pre")
+            )
+          );
 
         ScopeTracker.exitScope();
 
-        if (xml.tag === "p") {
-          if (!(parentTag === "" && isLast)) {
-            result += "\n";
-          }
+        if (xml.tag === "line") {
+          result += "\n";
         }
 
         result +=
           TermxFontColor.get("unset") +
           this.scopeToTermMarks(ScopeTracker.currentScope);
 
-        break;
+        return result;
       }
       case "br": {
         result += "\n";
-        break;
+        return result;
       }
       case "": {
-        result += xml.content
-          .map((content, index) => {
-            if (typeof content === "string") {
-              const shouldTrim = xml.textNode || xml.tag === "span";
-              return shouldTrim ? content.trim() : content;
-            }
-
-            const isLast = this.isLastTag(index, xml.content);
-            return this.formatXml(content, isLast);
-          })
-          .join("");
-        break;
-      }
-      default: {
-        throw new Error(`Invalid tag: <${xml.tag}>`);
+        result += this.join(
+          xml.content.map((content) => this.mapContents(content))
+        );
+        return result;
       }
     }
 
+    throw new Error(`Invalid tag: <${xml.tag}>`);
+  }
+
+  private static join(strings: string[]) {
+    let result = "";
+    for (let i = 0; i < strings.length; i++) {
+      result += strings[i];
+    }
     return result;
   }
 
-  private static isLastTag(
-    tagIndex: number,
-    content: (string | XmlObject)[]
-  ): boolean {
-    let isLast = true;
-
-    for (let i = tagIndex + 1; i < content.length; i++) {
-      if (typeof content[i] !== "string") {
-        isLast = false;
-        break;
+  private static mapContents(content: XmlObject | string, pre?: boolean) {
+    if (typeof content === "string") {
+      if (pre) {
+        return content;
       }
+      return content.replaceAll("\n", "").trim();
     }
 
-    return isLast;
+    return this.formatXml(content);
   }
 
   private static scopeToTermMarks(scope: Scope): string {
     let result = ""; //TermxFontColor.get("unset");
-
-    if (scope.bold) {
-      result += Bold;
-    }
 
     if (scope.color) {
       result += TermxFontColor.get(scope.color);
@@ -142,11 +127,39 @@ export class MarkupFormatter {
       result += TermxBgColor.get(scope.bg);
     }
 
+    if (scope.bold) {
+      result += Bold;
+    }
+
+    if (scope.dimmed) {
+      result += Dimmed;
+    }
+
+    if (scope.italic) {
+      result += Italic;
+    }
+
+    if (scope.underscore) {
+      result += Underscore;
+    }
+
+    if (scope.blink) {
+      result += Blink;
+    }
+
+    if (scope.inverted) {
+      result += Inverted;
+    }
+
+    if (scope.strikethrough) {
+      result += StrikeThrough;
+    }
+
     return result;
   }
 
   private static createScope(xml: XmlObject): Scope {
-    const scope: Scope = {};
+    const scope: Scope = { ...ScopeTracker.currentScope };
 
     if (xml.tag) {
       scope.parentTag = xml.tag;
@@ -154,17 +167,33 @@ export class MarkupFormatter {
 
     for (const [name, value] of xml.attributes) {
       switch (name) {
-        case "bold":
-          scope.bold = value === true || value === "true";
-          break;
         case "color":
           scope.color = as(value, "string");
           break;
         case "bg":
           scope.bg = as(value, "string");
           break;
-        default:
-          throw new Error(`Invalid attribute: ${name}`);
+        case "bold":
+          scope.bold = value === true || value === "true";
+          break;
+        case "dim":
+          scope.dimmed = value === true || value === "true";
+          break;
+        case "italic":
+          scope.italic = value === true || value === "true";
+          break;
+        case "underscore":
+          scope.underscore = value === true || value === "true";
+          break;
+        case "blink":
+          scope.blink = value === true || value === "true";
+          break;
+        case "invert":
+          scope.inverted = value === true || value === "true";
+          break;
+        case "strike":
+          scope.strikethrough = value === true || value === "true";
+          break;
       }
     }
 

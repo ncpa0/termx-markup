@@ -207,6 +207,12 @@ export function parseXml(xmlStr: string) {
       // IS_IN_TAG
       case 1: {
         switch (char) {
+          case "\n": {
+            if (xml.node.o.tag.length > 0) {
+              state = state | IS_TAG_NAME_READ;
+            }
+            continue;
+          }
           case " ": {
             if (xml.node.o.tag.length > 0) {
               state = state | IS_TAG_NAME_READ;
@@ -250,6 +256,9 @@ export function parseXml(xmlStr: string) {
       // IS_IN_TAG | IS_TAG_NAME_READ
       case 33: {
         switch (char) {
+          case "\n": {
+            continue;
+          }
           case " ": {
             continue;
           }
@@ -286,6 +295,9 @@ export function parseXml(xmlStr: string) {
       // IS_IN_TAG | IS_CLOSING_TAG
       case 17: {
         switch (char) {
+          case "\n": {
+            continue;
+          }
           case " ": {
             continue;
           }
@@ -321,6 +333,12 @@ export function parseXml(xmlStr: string) {
                 "Attribute values must be enclosed in double quotes."
               );
             }
+            continue;
+          }
+          case "\n": {
+            state = state & NOT_IS_IN_ATTRIBUTE;
+            xml.node.o.attributes.push([currentAttributeName, true]);
+            currentAttributeName = "";
             continue;
           }
           case " ": {
