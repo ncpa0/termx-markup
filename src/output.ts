@@ -14,15 +14,15 @@ import { MarkupFormatter } from "./formatter/formatter";
  * manually)
  *
  * What function is used for printing can be changed by calling
- * the `Output.setEnvPrint` function. This will change how the
- * global Output instance prints as well as any new Output
- * instances created after this change.
+ * the `Output.setDefaultPrintMethod` function. This will change
+ * how the global Output instance prints as well as any new
+ * Output instances created after this change.
  *
  * Additionally, each instance of Output can be given a custom
  * print function that will override the global print function.
  */
 export class Output {
-  private static defaultEnvPrint?: (text: string) => void;
+  private static defaultPrintFn?: (text: string) => void;
   private static globalOutput: Output;
 
   static {
@@ -53,29 +53,29 @@ export class Output {
    * Setting a new default print function will not affect any
    * existing Output instances.
    */
-  static setEnvPrint(envPrint: (text: string) => void): void {
-    Output.defaultEnvPrint = envPrint;
-    Output.globalOutput = new Output(envPrint);
+  static setDefaultPrintMethod(printFn: (text: string) => void): void {
+    Output.defaultPrintFn = printFn;
+    Output.globalOutput = new Output(printFn);
   }
 
-  private envPrint: (text: string) => void;
+  private _printFn: (text: string) => void;
 
   /**
    * Creates a new Output instance.
    *
-   * @param envPrint The print function to use for printing to
-   *   the console.
+   * @param printFn The print function to use for printing to the
+   *   console.
    */
-  constructor(envPrint?: (text: string) => void) {
-    if (envPrint) {
-      this.envPrint = envPrint;
+  constructor(printFn?: (text: string) => void) {
+    if (printFn) {
+      this._printFn = printFn;
     } else {
-      if (Output.defaultEnvPrint) {
-        this.envPrint = Output.defaultEnvPrint;
+      if (Output.defaultPrintFn) {
+        this._printFn = Output.defaultPrintFn;
       } else if (typeof print === "function") {
-        this.envPrint = print;
+        this._printFn = print;
       } else if (typeof console !== "undefined" && console.log) {
-        this.envPrint = (v) => console.log(v);
+        this._printFn = (v) => console.log(v);
       } else {
         throw new Error(
           "Unable to detect print function for current environment."
@@ -86,10 +86,10 @@ export class Output {
 
   private printError(e: any) {
     if (e != null) {
-      this.envPrint((e.toString() as string) + "\n");
+      this._printFn((e.toString() as string) + "\n");
 
       if (typeof e === "object" && e.stack) {
-        this.envPrint((e.stack as string) + "\n");
+        this._printFn((e.stack as string) + "\n");
       }
     }
   }
@@ -110,10 +110,10 @@ export class Output {
       const lines = this.parseMarkupLines(markup);
 
       for (const line of lines) {
-        this.envPrint(line);
+        this._printFn(line);
       }
     } catch (e) {
-      this.envPrint(
+      this._printFn(
         TermxFontColor.get("red") +
           "Failed to format/print given markup." +
           TermxFontColor.get("unset") +
@@ -133,10 +133,10 @@ export class Output {
       const lines = this.parseMarkupLines(markup);
 
       for (const line of lines) {
-        this.envPrint(line + "\n");
+        this._printFn(line + "\n");
       }
     } catch (e) {
-      this.envPrint(
+      this._printFn(
         TermxFontColor.get("red") +
           "Failed to format/print given markup." +
           TermxFontColor.get("unset") +

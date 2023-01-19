@@ -7,7 +7,7 @@
 ```tsx
 import { Output, html } from "termx-markup";
 
-Output.setEnvPrint(console.log); // (optional) print using console.log
+Output.setDefaultPrintMethod(console.log); // (optional) print using console.log
 
 const markup = html`
   <p bold color="red">Hello <span color="blue">in my</span> world!</p>
