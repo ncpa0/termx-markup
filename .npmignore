@@ -3,6 +3,7 @@ __tests__
 .editorconfig
 .eslintignore
 .eslintrc.json
+.github
 .gitignore
 .husky
 .prettierrc.json
