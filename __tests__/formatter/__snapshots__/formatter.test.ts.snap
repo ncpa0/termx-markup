@@ -1,5 +1,91 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`MarkupFormatter <ol> tag should correctly render list with numbered indexes 1`] = `
+"[0m1. [31mRed[0m
+2. [32mGreen[0m
+3. [34mBlue[0m
+[0m"
+`;
+
+exports[`MarkupFormatter <ol> tag should correctly render multiline list elements 1`] = `
+"[0m1. [31m[31mRed[0m
+   [31m[31mRed[0m[31m[0m
+2. [32m[32mGreen[0m
+   [32m[32mGreen[0m[32m[0m
+3. [34m[34mBlue[0m
+   [34m[34mBlue[0m[34m[0m
+[0m"
+`;
+
+exports[`MarkupFormatter <ol> tag should correctly render multiline list elements with more than 9 elements 1`] = `
+"[0m1.  [31m[31mRed[0m
+    [31m[31mRed[0m[31m[0m
+2.  [32m[32mGreen[0m
+    [32m[32mGreen[0m[32m[0m
+3.  [34m[34mBlue[0m
+    [34m[34mBlue[0m[34m[0m
+4.  [33m[33mYellow[0m
+    [33m[33mYellow[0m[33m[0m
+5.  [35m[35mMagenta[0m
+    [35m[35mMagenta[0m[35m[0m
+6.  [36m[36mcyan[0m
+    [36m[36mcyan[0m[36m[0m
+7.  [37m[37mwhite[0m
+    [37m[37mwhite[0m[37m[0m
+8.  [91m[91mlightRed[0m
+    [91m[91mlightRed[0m[91m[0m
+9.  [92m[92mlightGreen[0m
+    [92m[92mlightGreen[0m[92m[0m
+10. [93m[93mlightYellow[0m
+    [93m[93mlightYellow[0m[93m[0m
+11. [94m[94mlightBlue[0m
+    [94m[94mlightBlue[0m[94m[0m
+[0m"
+`;
+
+exports[`MarkupFormatter <ol> tag should correctly render multiline list elements with more than 9 nested elements 1`] = `
+"[0m1. Element 1[0m
+2. Element 2[0m
+3. Colors:[0m
+   1.  [31m[31mRed[0m
+       [31m[31mRed[0m[31m[0m
+   2.  [32m[32mGreen[0m
+       [32m[32mGreen[0m[32m[0m
+   3.  [34m[34mBlue[0m
+       [34m[34mBlue[0m[34m[0m
+   4.  [33m[33mYellow[0m
+       [33m[33mYellow[0m[33m[0m
+   5.  [35m[35mMagenta[0m
+       [35m[35mMagenta[0m[35m[0m
+   6.  [36m[36mcyan[0m
+       [36m[36mcyan[0m[36m[0m
+   7.  [37m[37mwhite[0m
+       [37m[37mwhite[0m[37m[0m
+   8.  [91m[91mlightRed[0m
+       [91m[91mlightRed[0m[91m[0m
+   9.  [92m[92mlightGreen[0m
+       [92m[92mlightGreen[0m[92m[0m
+   10. [93m[93mlightYellow[0m
+       [93m[93mlightYellow[0m[93m[0m
+   11. [94m[94mlightBlue[0m
+       [94m[94mlightBlue[0m[94m[0m
+   12. [95m[95mlightMagenta[0m
+       [95m[95mlightMagenta[0m[95m[0m
+   [0m[0m
+[0m"
+`;
+
+exports[`MarkupFormatter <ol> tag should correctly render nested list 1`] = `
+"[0m1. [31mRed[0m
+2. [32mGreen[0m
+3. Shades of blue[0m
+   1. [34mBlue[0m
+   2. [38;2;0;147;175mMunsell[0m
+   3. [38;2;204;204;255mPeriwinkle[0m
+   [0m[0m
+[0m"
+`;
+
 exports[`MarkupFormatter <repeat> tag should correctly repeat text content 1`] = `"[0mFOOFOOFOO[0m"`;
 
 exports[`MarkupFormatter <repeat> tag should render as if it wasn't there if 'times' attribute is not specified 1`] = `"[0m[31mRed Red[0m[0m"`;
@@ -16,6 +102,34 @@ exports[`MarkupFormatter <repeat> tag should repeat it's content 5 times 1`] = `
 [34m[41m[1m[4m tf tf [0m
 [34m[41m[1m[4m tf tf [0m
 [34m[41m[1m[4m tf tf [0m
+[0m"
+`;
+
+exports[`MarkupFormatter <ul> tag should correctly render list with bullet indexes 1`] = `
+"[0m● [31mRed[0m
+● [32mGreen[0m
+● [34mBlue[0m
+[0m"
+`;
+
+exports[`MarkupFormatter <ul> tag should correctly render multiline list elements 1`] = `
+"[0m□ [31m[31mRed[0m
+  [31m[31mRed[0m[31m[0m
+□ [32m[32mGreen[0m
+  [32m[32mGreen[0m[32m[0m
+□ [34m[34mBlue[0m
+  [34m[34mBlue[0m[34m[0m
+[0m"
+`;
+
+exports[`MarkupFormatter <ul> tag should correctly render nested list 1`] = `
+"[0m● [31mRed[0m
+● [32mGreen[0m
+● Shades of blue[0m
+  ○ [34mBlue[0m
+  ○ [38;2;0;147;175mMunsell[0m
+  ○ [38;2;204;204;255mPeriwinkle[0m
+  [0m[0m
 [0m"
 `;
 

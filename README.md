@@ -83,6 +83,8 @@ Output.print(markup);
 - `<br />` - prints a new line character
 - `<s />` - prints a space character
 - `<repeat>` - repeats the content of the tag a specified number of times, accepts additional attribute `times` (number)
+- `<ol>` - ordered list, each child element is required to ba a `<li>` tag
+- `<ul>` - unordered list, each child element is required to ba a `<li>` tag, accepts additional attribute `type` (string) which can be of value `circle`, `square` or `bullet` (default is `bullet`)
 
 ## Supported attributes
 

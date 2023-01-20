@@ -1,5 +1,5 @@
 export type Scope = {
-  parentTag?: string;
+  tag?: string;
   color?: string;
   bg?: string;
   bold?: boolean;
@@ -15,7 +15,7 @@ export type Scope = {
 export class ScopeTracker {
   private static scopeStack: Scope[] = [
     {
-      parentTag: "",
+      tag: "",
     },
   ];
   private static _currentScope: Scope = this.scopeStack[0]!;
@@ -33,5 +33,11 @@ export class ScopeTracker {
   static exitScope() {
     this.scopeStack.pop();
     this._currentScope = this.scopeStack[this.scopeStack.length - 1] ?? {};
+  }
+
+  static traverseUp(callback: (scope: Readonly<Scope>) => void) {
+    for (let i = this.scopeStack.length - 1; i >= 0; i--) {
+      callback(this.scopeStack[i]!);
+    }
   }
 }

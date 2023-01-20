@@ -176,4 +176,245 @@ describe("MarkupFormatter", () => {
       expect(formattedXml).toMatchSnapshot();
     });
   });
+
+  describe("<ol> tag", () => {
+    it("should correctly render list with numbered indexes", () => {
+      const xml = html`
+        <ol>
+          <li color="red">Red</li>
+          <li color="green">Green</li>
+          <li color="blue">Blue</li>
+        </ol>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly render nested list", () => {
+      const xml = html`
+        <ol>
+          <li color="red">Red</li>
+          <li color="green">Green</li>
+          <li>
+            <line>Shades of blue</line>
+            <ol>
+              <li color="blue">Blue</li>
+              <li color="rgb(0, 147, 175)">Munsell</li>
+              <li color="rgb(204, 204, 255)">Periwinkle</li>
+            </ol>
+          </li>
+        </ol>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly render multiline list elements", () => {
+      const xml = html`
+        <ol>
+          <li color="red">
+            <line>Red</line>
+            <span>Red</span>
+          </li>
+          <li color="green">
+            <line>Green</line>
+            <span>Green</span>
+          </li>
+          <li color="blue">
+            <line>Blue</line>
+            <span>Blue</span>
+          </li>
+        </ol>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly render multiline list elements with more than 9 elements", () => {
+      const xml = html`
+        <ol>
+          <li color="red">
+            <line>Red</line>
+            <span>Red</span>
+          </li>
+          <li color="green">
+            <line>Green</line>
+            <span>Green</span>
+          </li>
+          <li color="blue">
+            <line>Blue</line>
+            <span>Blue</span>
+          </li>
+          <li color="yellow">
+            <line>Yellow</line>
+            <span>Yellow</span>
+          </li>
+          <li color="magenta">
+            <line>Magenta</line>
+            <span>Magenta</span>
+          </li>
+          <li color="cyan">
+            <line>cyan</line>
+            <span>cyan</span>
+          </li>
+          <li color="white">
+            <line>white</line>
+            <span>white</span>
+          </li>
+          <li color="lightRed">
+            <line>lightRed</line>
+            <span>lightRed</span>
+          </li>
+          <li color="lightGreen">
+            <line>lightGreen</line>
+            <span>lightGreen</span>
+          </li>
+          <li color="lightYellow">
+            <line>lightYellow</line>
+            <span>lightYellow</span>
+          </li>
+          <li color="lightBlue">
+            <line>lightBlue</line>
+            <span>lightBlue</span>
+          </li>
+        </ol>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly render multiline list elements with more than 9 nested elements", () => {
+      const xml = html`
+        <ol>
+          <li>Element 1</li>
+          <li>Element 2</li>
+          <li>
+            <line>Colors:</line>
+            <ol>
+              <li color="red">
+                <line>Red</line>
+                <span>Red</span>
+              </li>
+              <li color="green">
+                <line>Green</line>
+                <span>Green</span>
+              </li>
+              <li color="blue">
+                <line>Blue</line>
+                <span>Blue</span>
+              </li>
+              <li color="yellow">
+                <line>Yellow</line>
+                <span>Yellow</span>
+              </li>
+              <li color="magenta">
+                <line>Magenta</line>
+                <span>Magenta</span>
+              </li>
+              <li color="cyan">
+                <line>cyan</line>
+                <span>cyan</span>
+              </li>
+              <li color="white">
+                <line>white</line>
+                <span>white</span>
+              </li>
+              <li color="lightRed">
+                <line>lightRed</line>
+                <span>lightRed</span>
+              </li>
+              <li color="lightGreen">
+                <line>lightGreen</line>
+                <span>lightGreen</span>
+              </li>
+              <li color="lightYellow">
+                <line>lightYellow</line>
+                <span>lightYellow</span>
+              </li>
+              <li color="lightBlue">
+                <line>lightBlue</line>
+                <span>lightBlue</span>
+              </li>
+              <li color="lightMagenta">
+                <line>lightMagenta</line>
+                <span>lightMagenta</span>
+              </li>
+            </ol>
+          </li>
+        </ol>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+  });
+
+  describe("<ul> tag", () => {
+    it("should correctly render list with bullet indexes", () => {
+      const xml = html`
+        <ul>
+          <li color="red">Red</li>
+          <li color="green">Green</li>
+          <li color="blue">Blue</li>
+        </ul>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly render nested list", () => {
+      const xml = html`
+        <ul>
+          <li color="red">Red</li>
+          <li color="green">Green</li>
+          <li>
+            <line>Shades of blue</line>
+            <ul type="circle">
+              <li color="blue">Blue</li>
+              <li color="rgb(0, 147, 175)">Munsell</li>
+              <li color="rgb(204, 204, 255)">Periwinkle</li>
+            </ul>
+          </li>
+        </ul>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly render multiline list elements", () => {
+      const xml = html`
+        <ul type="square">
+          <li color="red">
+            <line>Red</line>
+            <span>Red</span>
+          </li>
+          <li color="green">
+            <line>Green</line>
+            <span>Green</span>
+          </li>
+          <li color="blue">
+            <line>Blue</line>
+            <span>Blue</span>
+          </li>
+        </ul>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+  });
 });

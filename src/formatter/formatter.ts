@@ -3,6 +3,7 @@ import { TermxFontColor } from "../colors/termx-font-colors";
 import { desanitizeHtml } from "../html-tag";
 import type { MarkupNode } from "../markup-parser";
 import { parseMarkup } from "../markup-parser";
+import { leftPad } from "./left-pad";
 import type { Scope } from "./scope-tracker";
 import { ScopeTracker } from "./scope-tracker";
 
@@ -60,13 +61,14 @@ export class MarkupFormatter {
     let result = "";
 
     switch (node.tag) {
+      case "li":
       case "pre":
       case "line":
       case "span": {
         ScopeTracker.enterScope(this.createScope(node));
 
         result +=
-          this.scopeToTermMarks(ScopeTracker.currentScope) +
+          this.scopeToAnsi(ScopeTracker.currentScope) +
           this.join(
             node.content.map((content) =>
               this.mapContents(content, node.tag === "pre")
@@ -81,7 +83,49 @@ export class MarkupFormatter {
           result += "\n";
         }
 
-        result += this.scopeToTermMarks(ScopeTracker.currentScope);
+        result += this.scopeToAnsi(ScopeTracker.currentScope);
+
+        return result;
+      }
+      case "ol":
+      case "ul": {
+        const prefix = this.getListElementPrefix(node);
+        const padding = this.getListPadding();
+
+        ScopeTracker.enterScope(this.createScope(node));
+
+        result +=
+          this.scopeToAnsi(ScopeTracker.currentScope) +
+          this.join(
+            node.content
+              .filter((c) => typeof c !== "string" || c.trim().length)
+              .map((content, i) => {
+                if (typeof content === "string" || content.tag !== "li") {
+                  throw new Error(
+                    `Invalid element inside <${node.tag}>. Each child of <${node.tag}> must be a <li> element.`
+                  );
+                }
+
+                const { contentPad, firstLineOffset } = this.getContentPad(
+                  node,
+                  i + 1
+                );
+
+                const r =
+                  prefix(i) +
+                  leftPad(this.mapContents(content), contentPad).substring(
+                    firstLineOffset
+                  );
+
+                return leftPad(r, padding) + "\n";
+              })
+          );
+
+        ScopeTracker.exitScope();
+
+        result +=
+          TermxFontColor.get("unset") +
+          this.scopeToAnsi(ScopeTracker.currentScope);
 
         return result;
       }
@@ -98,14 +142,13 @@ export class MarkupFormatter {
         );
 
         result +=
-          this.scopeToTermMarks(ScopeTracker.currentScope) +
-          content.repeat(times);
+          this.scopeToAnsi(ScopeTracker.currentScope) + content.repeat(times);
 
         ScopeTracker.exitScope();
 
         result +=
           TermxFontColor.get("unset") +
-          this.scopeToTermMarks(ScopeTracker.currentScope);
+          this.scopeToAnsi(ScopeTracker.currentScope);
 
         return result;
       }
@@ -156,7 +199,65 @@ export class MarkupFormatter {
     return this.formatMarkup(content);
   }
 
-  private static scopeToTermMarks(scope: Scope): string {
+  private static getListPadding(): number {
+    let p = 0;
+
+    ScopeTracker.traverseUp((scope) => {
+      if (scope.tag === "ol" || scope.tag === "ul") {
+        p += 1;
+      }
+    });
+
+    if (p === 0) {
+      return 0;
+    }
+
+    return (p - 1) * 2;
+  }
+
+  private static getContentPad(node: MarkupNode, line: number) {
+    if (node.tag === "ul") {
+      return {
+        contentPad: 2,
+        firstLineOffset: 2,
+      };
+    }
+    const maxDigitPrefix = node.content.length.toString().length;
+
+    const contentPad = node.content.length.toString().length + 2;
+
+    return {
+      contentPad,
+      firstLineOffset: contentPad - (maxDigitPrefix - line.toString().length),
+    };
+  }
+
+  private static getListElementPrefix(
+    node: MarkupNode
+  ): (index: number) => string {
+    if (node.tag === "ol") {
+      return (index) => `${index + 1}. `;
+    }
+
+    const type = this.getAttribute(node, "type") ?? "bullet";
+
+    const symbol = (() => {
+      switch (type) {
+        case "bullet":
+          return String.fromCharCode(0x25cf);
+        case "circle":
+          return String.fromCharCode(0x25cb);
+        case "square":
+          return String.fromCharCode(0x25a1);
+        default:
+          throw new Error(`Invalid list type: ${type}`);
+      }
+    })();
+
+    return () => `${symbol} `;
+  }
+
+  private static scopeToAnsi(scope: Scope): string {
     let result = "";
 
     if (scope.noInherit) {
@@ -213,7 +314,7 @@ export class MarkupFormatter {
       : { ...ScopeTracker.currentScope, noInherit: false };
 
     if (node.tag) {
-      scope.parentTag = node.tag;
+      scope.tag = node.tag;
     }
 
     for (const [name, value] of node.attributes) {
