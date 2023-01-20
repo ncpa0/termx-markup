@@ -75,9 +75,33 @@ export class MarkupFormatter {
 
         ScopeTracker.exitScope();
 
+        result += TermxFontColor.get("unset");
+
         if (node.tag === "line") {
           result += "\n";
         }
+
+        result += this.scopeToTermMarks(ScopeTracker.currentScope);
+
+        return result;
+      }
+      case "repeat": {
+        const timesAttr = this.getAttribute(node, "times");
+        const times = timesAttr ? Number(timesAttr) : 1;
+
+        ScopeTracker.enterScope(this.createScope(node));
+
+        const content = this.join(
+          node.content.map((content) =>
+            this.mapContents(content, node.tag === "pre")
+          )
+        );
+
+        result +=
+          this.scopeToTermMarks(ScopeTracker.currentScope) +
+          content.repeat(times);
+
+        ScopeTracker.exitScope();
 
         result +=
           TermxFontColor.get("unset") +
@@ -108,6 +132,17 @@ export class MarkupFormatter {
       result += strings[i];
     }
     return result;
+  }
+
+  private static getAttribute(
+    node: MarkupNode,
+    name: string
+  ): string | undefined {
+    for (const [key, value] of node.attributes) {
+      if (key === name) {
+        return as(value, "string");
+      }
+    }
   }
 
   private static mapContents(content: MarkupNode | string, pre?: boolean) {

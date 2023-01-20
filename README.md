@@ -82,6 +82,7 @@ Output.print(markup);
 - `<pre>` - preformatted text, all white-space characters will be preserved
 - `<br />` - prints a new line character
 - `<s />` - prints a space character
+- `<repeat>` - repeats the content of the tag a specified number of times, accepts additional attribute `times` (number)
 
 ## Supported attributes
 
