@@ -129,6 +129,25 @@ export class MarkupFormatter {
 
         return result;
       }
+      case "pad": {
+        ScopeTracker.enterScope(this.createScope(node));
+
+        const paddingAttr = this.getAttribute(node, "size");
+
+        const content =
+          this.scopeToAnsi(ScopeTracker.currentScope) +
+          this.join(node.content.map((content) => this.mapContents(content)));
+
+        result += leftPad(content, Number(paddingAttr));
+
+        ScopeTracker.exitScope();
+
+        result +=
+          TermxFontColor.get("unset") +
+          this.scopeToAnsi(ScopeTracker.currentScope);
+
+        return result;
+      }
       case "br": {
         return result + "\n";
       }
