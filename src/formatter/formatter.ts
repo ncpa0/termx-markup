@@ -86,8 +86,10 @@ export class MarkupFormatter {
         return result;
       }
       case "br": {
-        result += "\n";
-        return result;
+        return result + "\n";
+      }
+      case "s": {
+        return result + " ";
       }
       case "": {
         result += this.join(

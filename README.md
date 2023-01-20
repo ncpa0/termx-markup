@@ -81,6 +81,7 @@ Output.print(markup);
 - `<line>` - same as span, but prints a new line character at the end
 - `<pre>` - preformatted text, all white-space characters will be preserved
 - `<br />` - prints a new line character
+- `<s />` - prints a space character
 
 ## Supported attributes
 
