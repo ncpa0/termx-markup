@@ -93,6 +93,7 @@ Output.print(markup);
 - `blink` - blinking text (boolean)
 - `invert` - inverse color text (boolean)
 - `strike` - strike-through text (boolean)
+- `no-inherit` - prevents inheriting parent styles (boolean)
 
 ## Default available colors
 

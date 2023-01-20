@@ -68,6 +68,26 @@ describe("parseMarkup", () => {
     });
   });
 
+  it("should parse xml with attribute including non alpha characters", () => {
+    const xml =
+      "<span first-attr second_attr _privAttr #attr @attr &attr >child text</span>";
+    const result = parseMarkup(xml);
+
+    expect(result).toEqual({
+      tag: "span",
+      textNode: false,
+      attributes: [
+        ["first-attr", true],
+        ["second_attr", true],
+        ["_privAttr", true],
+        ["#attr", true],
+        ["@attr", true],
+        ["&attr", true],
+      ],
+      content: ["child text"],
+    });
+  });
+
   it("should parse xml with boolean attribute that has whitespace after it", () => {
     const xml = "<root><child bold >  foo bar baz  </child></root>";
     const result = parseMarkup(xml);

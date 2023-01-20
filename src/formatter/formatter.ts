@@ -120,7 +120,11 @@ export class MarkupFormatter {
   }
 
   private static scopeToTermMarks(scope: Scope): string {
-    let result = ""; //TermxFontColor.get("unset");
+    let result = "";
+
+    if (scope.noInherit) {
+      result += TermxFontColor.get("unset");
+    }
 
     if (scope.color) {
       result += TermxFontColor.get(scope.color);
@@ -162,7 +166,14 @@ export class MarkupFormatter {
   }
 
   private static createScope(node: MarkupNode): Scope {
-    const scope: Scope = { ...ScopeTracker.currentScope };
+    const noInherit = node.attributes.some(
+      ([key, value]) =>
+        key === "no-inherit" && (value === true || value === "true")
+    );
+
+    const scope: Scope = noInherit
+      ? { noInherit: true }
+      : { ...ScopeTracker.currentScope, noInherit: false };
 
     if (node.tag) {
       scope.parentTag = node.tag;

@@ -106,5 +106,25 @@ describe("MarkupFormatter", () => {
 
       expect(formatted).toMatchSnapshot();
     });
+
+    it("scenario 7", () => {
+      const xml = html`
+        <span underscore color="yellow">
+          <pre>Lorem </pre>
+          <span no-inherit strike color="blue">
+            <pre>ipsum </pre>
+            <span dim color="green">
+              <pre>dolor </pre>
+            </span>
+            <pre> sit </pre>
+          </span>
+          <pre>amet</pre>
+        </span>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchSnapshot();
+    });
   });
 });

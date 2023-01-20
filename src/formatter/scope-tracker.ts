@@ -9,6 +9,7 @@ export type Scope = {
   blink?: boolean;
   dimmed?: boolean;
   inverted?: boolean;
+  noInherit?: boolean;
 };
 
 export class ScopeTracker {
@@ -24,7 +25,7 @@ export class ScopeTracker {
   }
 
   static enterScope(scope: Scope) {
-    const s = Object.assign({}, this._currentScope, scope);
+    const s = scope;
     this.scopeStack.push(s);
     this._currentScope = s;
   }
