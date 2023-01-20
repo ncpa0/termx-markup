@@ -25,14 +25,6 @@ export class Output {
   private static defaultPrintFn?: (text: string) => void;
   private static globalOutput: Output;
 
-  static {
-    try {
-      this.globalOutput = new Output();
-    } catch (e) {
-      // no-op
-    }
-  }
-
   /** Formats the given markup and prints it to the console. */
   static print(...markup: string[]): void {
     Output.globalOutput.print(...markup);
@@ -145,6 +137,12 @@ export class Output {
       this.printError(e);
     }
   }
+}
+
+try {
+  Output["globalOutput"] = new Output();
+} catch (e) {
+  // no-op
 }
 
 /**
