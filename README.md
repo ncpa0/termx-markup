@@ -28,7 +28,7 @@ Output.println(markup);
 
 #### Output:
 
-> <span style="color:blue; font-weight:bold;">Hello </span><span style="color:red; font-weight:bold;">in my</span><span style="color:blue; font-weight:bold;"> world!</span>
+![Hello in my World!](./demo/example1.png)
 
 ### Only formatting
 
@@ -51,7 +51,7 @@ console.log(formatted);
 
 #### Output:
 
-> <span style="color:blue">Hello </span><span style="color:red">in my</span><span style="color:blue"> world!</span>
+![Hello in my World!](./demo/example2.png)
 
 ### Define custom colors
 
@@ -73,7 +73,7 @@ Output.print(markup);
 
 #### Output:
 
-> <span style="color:rgb(128, 0, 32)">Burgundy</span><br /><span style="color:#E0B0FF">Mauve</span><br /><span style="color:rgb(0, 128, 128)">Teal</span>
+![Burgundy, Mauve, Teal](./demo/example3.png)
 
 ## Supported tags
 
