@@ -1,5 +1,5 @@
 import { MarkupFormatter } from "../../src/formatter/formatter";
-import { html, raw } from "../../src/html-tag";
+import { html } from "../../src/html-tag";
 
 describe("MarkupFormatter", () => {
   describe("should correctly format the xml", () => {
@@ -125,55 +125,6 @@ describe("MarkupFormatter", () => {
       const formatted = MarkupFormatter.format(xml);
 
       expect(formatted).toMatchSnapshot();
-    });
-  });
-
-  describe("<repeat> tag", () => {
-    it("should render as if it wasn't there if 'times' attribute is not specified", () => {
-      const internalXml = html` <span color="red"> Red<s />Red </span>`;
-      const xml = html` <repeat>${raw(internalXml)}</repeat> `;
-
-      const formattedXml = MarkupFormatter.format(xml);
-
-      expect(formattedXml).toMatchSnapshot();
-    });
-
-    it("should repeat it's content 2 times", () => {
-      const internalXml = html`
-        <span color="red">Red</span>
-        <s />
-        <span color="green">Green</span>
-        <s />
-        <span color="blue">Blue</span>
-        <br />
-      `;
-
-      const xml = html` <repeat times="2">${raw(internalXml)}</repeat> `;
-
-      const formattedXml = MarkupFormatter.format(xml);
-
-      expect(formattedXml).toMatchSnapshot();
-    });
-
-    it("should repeat it's content 5 times", () => {
-      const internalXml = html`
-        <pre bold underscore bg="red" color="blue"> tf tf </pre>
-        <br />
-      `;
-
-      const xml = html` <repeat times="5">${raw(internalXml)}</repeat> `;
-
-      const formattedXml = MarkupFormatter.format(xml);
-
-      expect(formattedXml).toMatchSnapshot();
-    });
-
-    it("should correctly repeat text content", () => {
-      const xml = html`<repeat times="3">FOO</repeat>`;
-
-      const formattedXml = MarkupFormatter.format(xml);
-
-      expect(formattedXml).toMatchSnapshot();
     });
   });
 

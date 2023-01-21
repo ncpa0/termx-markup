@@ -86,25 +86,6 @@ exports[`MarkupFormatter <ol> tag should correctly render nested list 1`] = `
 [0m"
 `;
 
-exports[`MarkupFormatter <repeat> tag should correctly repeat text content 1`] = `"[0mFOOFOOFOO[0m"`;
-
-exports[`MarkupFormatter <repeat> tag should render as if it wasn't there if 'times' attribute is not specified 1`] = `"[0m[31mRed Red[0m[0m"`;
-
-exports[`MarkupFormatter <repeat> tag should repeat it's content 2 times 1`] = `
-"[0m[31mRed[0m [32mGreen[0m [34mBlue[0m
-[31mRed[0m [32mGreen[0m [34mBlue[0m
-[0m"
-`;
-
-exports[`MarkupFormatter <repeat> tag should repeat it's content 5 times 1`] = `
-"[0m[34m[41m[1m[4m tf tf [0m
-[34m[41m[1m[4m tf tf [0m
-[34m[41m[1m[4m tf tf [0m
-[34m[41m[1m[4m tf tf [0m
-[34m[41m[1m[4m tf tf [0m
-[0m"
-`;
-
 exports[`MarkupFormatter <ul> tag should correctly render list with bullet indexes 1`] = `
 "[0m● [31mRed[0m
 ● [32mGreen[0m

@@ -129,29 +129,6 @@ export class MarkupFormatter {
 
         return result;
       }
-      case "repeat": {
-        const timesAttr = this.getAttribute(node, "times");
-        const times = timesAttr ? Number(timesAttr) : 1;
-
-        ScopeTracker.enterScope(this.createScope(node));
-
-        const content = this.join(
-          node.content.map((content) =>
-            this.mapContents(content, node.tag === "pre")
-          )
-        );
-
-        result +=
-          this.scopeToAnsi(ScopeTracker.currentScope) + content.repeat(times);
-
-        ScopeTracker.exitScope();
-
-        result +=
-          TermxFontColor.get("unset") +
-          this.scopeToAnsi(ScopeTracker.currentScope);
-
-        return result;
-      }
       case "br": {
         return result + "\n";
       }
