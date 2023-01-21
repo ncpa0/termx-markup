@@ -368,4 +368,72 @@ describe("MarkupFormatter", () => {
       expect(formattedXml).toMatchSnapshot();
     });
   });
+
+  describe("<pad> tag", () => {
+    it("should not do anything id the size is not specified", () => {
+      const xml = html`<pad>Test</pad>`;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly add padding for simple text", () => {
+      const xml = html`<pad size="2">Test</pad>`;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly add padding for multiline text", () => {
+      const xml = html`<pad size="2"
+        ><line>Line 1</line><line>Line 2</line><line>Line 3</line></pad
+      >`;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly add padding for multiline text with nested tags", () => {
+      const xml = html`
+        <pad size="2">
+          <line>Line 1</line>
+          <line>Line 2</line>
+          <line>
+            <span>tag 1</span>
+            <s />
+            <span>tag 2</span>
+          </line>
+        </pad>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly add padding for nested pad tags", () => {
+      const xml = html`
+        <pad size="2">
+          <line>Line 1</line>
+          <line>Line 2</line>
+          <line>
+            <pad size="2">
+              <span>tag 1</span>
+              <s />
+              <span>tag 2</span>
+            </pad>
+          </line>
+        </pad>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      console.log(formattedXml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+  });
 });

@@ -86,6 +86,31 @@ exports[`MarkupFormatter <ol> tag should correctly render nested list 1`] = `
 [0m"
 `;
 
+exports[`MarkupFormatter <pad> tag should correctly add padding for multiline text 1`] = `
+"[0m  Line 1[0m
+  Line 2[0m
+  Line 3[0m
+  [0m"
+`;
+
+exports[`MarkupFormatter <pad> tag should correctly add padding for multiline text with nested tags 1`] = `
+"[0m  Line 1[0m
+  Line 2[0m
+  tag 1[0m tag 2[0m[0m
+  [0m"
+`;
+
+exports[`MarkupFormatter <pad> tag should correctly add padding for nested pad tags 1`] = `
+"[0m  Line 1[0m
+  Line 2[0m
+    tag 1[0m tag 2[0m[0m[0m
+  [0m"
+`;
+
+exports[`MarkupFormatter <pad> tag should correctly add padding for simple text 1`] = `"[0m  Test[0m"`;
+
+exports[`MarkupFormatter <pad> tag should not do anything id the size is not specified 1`] = `"[0mTest[0m"`;
+
 exports[`MarkupFormatter <ul> tag should correctly render list with bullet indexes 1`] = `
 "[0m● [31mRed[0m
 ● [32mGreen[0m

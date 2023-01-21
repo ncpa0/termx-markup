@@ -84,8 +84,11 @@ Output.print(markup);
 - `<s />` - prints a space character
 - `<ol>` - ordered list, each child element is required to ba a `<li>` tag
 - `<ul>` - unordered list, each child element is required to ba a `<li>` tag, accepts additional attribute `type` (string) which can be of value `circle`, `square` or `bullet` (default is `bullet`)
+- `<pad>` - adds left padding to it's content, accepts attribute `size` (number) which determines the number of spaces to print
 
 ## Supported attributes
+
+Following attributes are available on all tags:
 
 - `color` - color of the text (css-like rgb or a color name)
 - `bg` - background color of the text (css-like rgb or a color name)
