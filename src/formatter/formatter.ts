@@ -132,7 +132,7 @@ export class MarkupFormatter {
       case "pad": {
         ScopeTracker.enterScope(this.createScope(node));
 
-        const paddingAttr = this.getAttribute(node, "size");
+        const paddingAttr = this.getAttribute(node, "size") ?? 0;
 
         const content =
           this.scopeToAnsi(ScopeTracker.currentScope) +
