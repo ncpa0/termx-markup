@@ -75,6 +75,31 @@ Output.print(markup);
 
 ![Burgundy, Mauve, Teal](./demo/example3.png)
 
+### Printing lists
+
+```tsx
+import { Output, html } from "termx-markup";
+
+Output.print(html`
+  <line>Drinks:</line>
+  <ul>
+    <li>Coffee</li>
+    <li>Tea</li>
+    <li>
+      <line>Milk</line>
+      <ul type="circle">
+        <li>Skim</li>
+        <li>Whole</li>
+      </ul>
+    </li>
+  </ul>
+`);
+```
+
+#### Output:
+
+![Drinks: Coffee Tea Milk Skim Whole](./demo/example4.png)
+
 ## Supported tags
 
 - `<span>` - regular text, trims white-space characters and removes end-line characters
