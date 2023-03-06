@@ -1,10 +1,11 @@
 /**
- * Creates a html string from the given template literal. Each parameter
- * in the template literal is escaped to not include xml tag characters.
+ * Creates a html string from the given template literal. Each
+ * parameter in the template literal is escaped to not include
+ * xml tag characters.
  *
  * @example
- *  html`<div>${"<span>hello</span>"}</div>`;
- *  // > <div>&lt;span&gt;hello&lt;/span&gt;</div>
+ *   html`<div>${"<span>hello</span>"}</div>`;
+ *   // > <div>&lt;span&gt;hello&lt;/span&gt;</div>
  */
 export function html(...args: any[]): string {
   const b = args[0];
@@ -12,16 +13,19 @@ export function html(...args: any[]): string {
     a = 0,
     d = 0;
   for (c = b[0], a = 1, d = args.length; a < d; a++) {
+    /** One of the parameters in the template literal. */
+    const param = args[a];
+
     if (
-      typeof args[a] === "object" &&
-      args[a] !== null &&
-      args[a].name === "RawHtml"
+      typeof param === "object" &&
+      param !== null &&
+      param.name === "RawHtml"
     ) {
       // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-      c += args[a].toString() + b[a];
+      c += param.toString() + b[a];
     } else {
       // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-      c += sanitizeHtml(args[a].toString()) + b[a];
+      c += sanitizeHtml(param.toString()) + b[a];
     }
   }
   return c;

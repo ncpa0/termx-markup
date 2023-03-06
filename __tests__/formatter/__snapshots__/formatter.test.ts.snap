@@ -100,6 +100,15 @@ exports[`MarkupFormatter <pad> tag should correctly add padding for multiline te
   [0m"
 `;
 
+exports[`MarkupFormatter <pad> tag should correctly add padding for nested multiline pad tags 1`] = `
+"[0m  Line 1[0m[0m
+  Line 2[0m[0m
+  [0m  tag 1[0m[0m[0m[0m
+    tag 2[0m[0m[0m[0m
+    [0m[0m[0m[0m
+  [0m"
+`;
+
 exports[`MarkupFormatter <pad> tag should correctly add padding for nested pad tags 1`] = `
 "[0m  Line 1[0m
   Line 2[0m

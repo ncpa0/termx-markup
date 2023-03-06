@@ -1,6 +1,8 @@
 /** @type {import("ts-jest/dist/types").InitialOptionsTsJest} */
 module.exports = {
   testRegex: ".*__tests__/.+(.test.(ts|js|tsx|jsx))$",
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
+  transformIgnorePatterns: [],
   transform: {
     "^.+.(js|jsx|ts|tsx)$": [
       "@swc/jest",

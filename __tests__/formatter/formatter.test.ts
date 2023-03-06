@@ -2,6 +2,16 @@ import { MarkupFormatter } from "../../src/formatter/formatter";
 import { html } from "../../src/html-tag";
 
 describe("MarkupFormatter", () => {
+  it("test", () => {
+    const xml = html`
+      <span color="green">
+        <pre>${"Hello World"}</pre>
+      </span>
+    `;
+
+    console.log(MarkupFormatter.format(xml));
+  });
+
   describe("should correctly format the xml", () => {
     it("scenario 1", () => {
       const xml = html`
@@ -21,6 +31,8 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
+      console.log(formatted);
+
       expect(formatted).toMatchSnapshot();
     });
 
@@ -36,6 +48,8 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
+      console.log(formatted);
+
       expect(formatted).toMatchSnapshot();
     });
 
@@ -50,6 +64,8 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
+      console.log(formatted);
+
       expect(formatted).toMatchSnapshot();
     });
 
@@ -62,6 +78,8 @@ describe("MarkupFormatter", () => {
       `;
 
       const formatted = MarkupFormatter.format(xml);
+
+      console.log(formatted);
 
       expect(formatted).toMatchSnapshot();
     });
@@ -87,6 +105,8 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
+      console.log(formatted);
+
       expect(formatted).toMatchSnapshot();
     });
 
@@ -103,6 +123,8 @@ describe("MarkupFormatter", () => {
       `;
 
       const formatted = MarkupFormatter.format(xml);
+
+      console.log(formatted);
 
       expect(formatted).toMatchSnapshot();
     });
@@ -124,6 +146,8 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
+      console.log(formatted);
+
       expect(formatted).toMatchSnapshot();
     });
   });
@@ -140,6 +164,8 @@ describe("MarkupFormatter", () => {
 
       const formattedXml = MarkupFormatter.format(xml);
 
+      console.log(formattedXml);
+
       expect(formattedXml).toMatchSnapshot();
     });
 
@@ -149,7 +175,7 @@ describe("MarkupFormatter", () => {
           <li color="red">Red</li>
           <li color="green">Green</li>
           <li>
-            <line>Shades of blue</line>
+            <span>Shades of blue</span>
             <ol>
               <li color="blue">Blue</li>
               <li color="rgb(0, 147, 175)">Munsell</li>
@@ -160,6 +186,8 @@ describe("MarkupFormatter", () => {
       `;
 
       const formattedXml = MarkupFormatter.format(xml);
+
+      console.log(formattedXml);
 
       expect(formattedXml).toMatchSnapshot();
     });
@@ -183,6 +211,8 @@ describe("MarkupFormatter", () => {
       `;
 
       const formattedXml = MarkupFormatter.format(xml);
+
+      console.log(formattedXml);
 
       expect(formattedXml).toMatchSnapshot();
     });
@@ -239,6 +269,8 @@ describe("MarkupFormatter", () => {
 
       const formattedXml = MarkupFormatter.format(xml);
 
+      console.log(formattedXml);
+
       expect(formattedXml).toMatchSnapshot();
     });
 
@@ -248,7 +280,7 @@ describe("MarkupFormatter", () => {
           <li>Element 1</li>
           <li>Element 2</li>
           <li>
-            <line>Colors:</line>
+            <span>Colors:</span>
             <ol>
               <li color="red">
                 <line>Red</line>
@@ -305,6 +337,8 @@ describe("MarkupFormatter", () => {
 
       const formattedXml = MarkupFormatter.format(xml);
 
+      console.log(formattedXml);
+
       expect(formattedXml).toMatchSnapshot();
     });
   });
@@ -321,6 +355,8 @@ describe("MarkupFormatter", () => {
 
       const formattedXml = MarkupFormatter.format(xml);
 
+      console.log(formattedXml);
+
       expect(formattedXml).toMatchSnapshot();
     });
 
@@ -330,7 +366,7 @@ describe("MarkupFormatter", () => {
           <li color="red">Red</li>
           <li color="green">Green</li>
           <li>
-            <line>Shades of blue</line>
+            <span>Shades of blue</span>
             <ul type="circle">
               <li color="blue">Blue</li>
               <li color="rgb(0, 147, 175)">Munsell</li>
@@ -341,6 +377,8 @@ describe("MarkupFormatter", () => {
       `;
 
       const formattedXml = MarkupFormatter.format(xml);
+
+      console.log(formattedXml);
 
       expect(formattedXml).toMatchSnapshot();
     });
@@ -365,6 +403,8 @@ describe("MarkupFormatter", () => {
 
       const formattedXml = MarkupFormatter.format(xml);
 
+      console.log(formattedXml);
+
       expect(formattedXml).toMatchSnapshot();
     });
   });
@@ -375,6 +415,8 @@ describe("MarkupFormatter", () => {
 
       const formattedXml = MarkupFormatter.format(xml);
 
+      console.log("|" + formattedXml);
+
       expect(formattedXml).toMatchSnapshot();
     });
 
@@ -383,15 +425,23 @@ describe("MarkupFormatter", () => {
 
       const formattedXml = MarkupFormatter.format(xml);
 
+      console.log(formattedXml);
+
       expect(formattedXml).toMatchSnapshot();
     });
 
     it("should correctly add padding for multiline text", () => {
-      const xml = html`<pad size="2"
-        ><line>Line 1</line><line>Line 2</line><line>Line 3</line></pad
-      >`;
+      const xml = html`
+        <pad size="2">
+          <line>Line 1</line>
+          <line>Line 2</line>
+          <line>Line 3</line>
+        </pad>
+      `;
 
       const formattedXml = MarkupFormatter.format(xml);
+
+      console.log(formattedXml);
 
       expect(formattedXml).toMatchSnapshot();
     });
@@ -411,6 +461,8 @@ describe("MarkupFormatter", () => {
 
       const formattedXml = MarkupFormatter.format(xml);
 
+      console.log(formattedXml);
+
       expect(formattedXml).toMatchSnapshot();
     });
 
@@ -424,6 +476,27 @@ describe("MarkupFormatter", () => {
               <span>tag 1</span>
               <s />
               <span>tag 2</span>
+            </pad>
+          </line>
+        </pad>
+      `;
+
+      const formattedXml = MarkupFormatter.format(xml);
+
+      console.log(formattedXml);
+
+      expect(formattedXml).toMatchSnapshot();
+    });
+
+    it("should correctly add padding for nested multiline pad tags", () => {
+      const xml = html`
+        <pad size="2">
+          <line>Line 1</line>
+          <line>Line 2</line>
+          <line>
+            <pad size="2">
+              <line>tag 1</line>
+              <line>tag 2</line>
             </pad>
           </line>
         </pad>

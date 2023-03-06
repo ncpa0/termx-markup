@@ -1,11 +1,17 @@
+/* eslint-disable for-direction */
+/* eslint-disable @typescript-eslint/switch-exhaustiveness-check */
+/* eslint-disable @typescript-eslint/no-base-to-string */
+import stripAnsi from "strip-ansi";
 import { TermxBgColor } from "../colors/termx-bg-color";
 import { TermxFontColor } from "../colors/termx-font-colors";
 import { desanitizeHtml } from "../html-tag";
 import type { MarkupNode } from "../markup-parser";
 import { parseMarkup } from "../markup-parser";
 import { leftPad } from "./left-pad";
-import type { Scope } from "./scope-tracker";
+import type { ScopeStyles } from "./scope-tracker";
 import { ScopeTracker } from "./scope-tracker";
+
+const UNSET = TermxFontColor.get("unset");
 
 const escape = "\u001b";
 const Bold = `${escape}[1m`;
@@ -15,6 +21,114 @@ const Underscore = `${escape}[4m`;
 const Blink = `${escape}[5m`;
 const Inverted = `${escape}[7m`;
 const StrikeThrough = `${escape}[9m`;
+
+const BORDER_CHAR = {
+  left: "│",
+  right: "│",
+  top: "─",
+  bottom: "─",
+  topLeft: "┌",
+  topRight: "┐",
+  bottomLeft: "└",
+  bottomRight: "┘",
+};
+
+class ConditionalBreak {}
+
+class Lines {
+  private lines: Array<ConditionalBreak | string> = [];
+
+  conditionalBreak() {
+    this.lines.push(new ConditionalBreak());
+
+    return this;
+  }
+
+  add(text: string) {
+    this.lines.push(text);
+
+    return this;
+  }
+
+  append(text: string) {
+    if (this.lines.length > 0) {
+      if (typeof this.lines[this.lines.length - 1] === "string") {
+        this.lines[this.lines.length - 1] += text;
+      } else {
+        this.add(text);
+      }
+    } else {
+      this.add(text);
+    }
+
+    return this;
+  }
+
+  concat(other: Lines) {
+    if (other.lines.length === 0) {
+      return this;
+    }
+
+    if (this.lines.length === 0) {
+      this.lines = other.lines.slice();
+    } else {
+      if (
+        typeof this.lines[this.lines.length - 1] === "object" ||
+        typeof other.lines[0] === "object"
+      ) {
+        this.lines = this.lines.concat(other.lines);
+      } else {
+        this.lines[this.lines.length - 1] += other.lines[0]!;
+        this.lines = this.lines.concat(other.lines.slice(1));
+      }
+    }
+
+    return this;
+  }
+
+  forEach(fn: (line: string, index: number) => any) {
+    let i = 0;
+    this.lines.forEach((line) => {
+      if (typeof line === "string") {
+        fn(line, i++);
+      }
+    });
+    return this;
+  }
+
+  mapLines(fn: (line: string, index: number) => string) {
+    let i = 0;
+    this.lines = this.lines.flatMap((line) => {
+      if (typeof line === "string") {
+        return fn(line, i++);
+      } else {
+        return line;
+      }
+    });
+
+    return this;
+  }
+
+  toString() {
+    const separator = "\n";
+    let result = "";
+    this.forEach((line, i) => {
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+      result += (i !== 0 ? separator : "") + line;
+    });
+    // for (let i = 0; i < this.lines.length; i++) {
+    //   const line = this.lines[i];
+    //   if (typeof line === "string") {
+    //     // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+    //     result += (i !== 0 ? separator : "") + line;
+    //   } else {
+    //     // TODO: check if last/first
+    //     // result += separator;
+    //   }
+    // }
+    return result;
+  }
+}
 
 /**
  * Formats given Markup into a string that can be printed to the
@@ -53,111 +167,289 @@ export class MarkupFormatter {
   static format(markup: string): string {
     const node = parseMarkup(markup);
     return (
-      TermxFontColor.get("unset") + desanitizeHtml(this.formatMarkup(node))
+      TermxFontColor.get("unset") +
+      desanitizeHtml(this.formatMarkup(node).toString())
     );
   }
 
-  private static formatMarkup(node: MarkupNode): string {
-    let result = "";
+  private static formatMarkup(node: MarkupNode): Lines {
+    const result = new Lines();
 
     switch (node.tag) {
       case "li":
-      case "pre":
       case "line":
       case "span": {
+        const parentAnsi = this.scopeToAnsi(ScopeTracker.currentScope);
+
         ScopeTracker.enterScope(this.createScope(node));
 
-        result +=
-          this.scopeToAnsi(ScopeTracker.currentScope) +
-          this.join(
-            node.content.map((content) =>
-              this.mapContents(content, node.tag === "pre")
-            )
-          );
+        const ansiScope = this.scopeToAnsi(ScopeTracker.currentScope);
+
+        for (const content of node.content) {
+          const lines = this.mapContents(content);
+          lines.mapLines((l) => `${ansiScope}${l}${UNSET}${parentAnsi}`);
+          result.concat(lines);
+        }
 
         ScopeTracker.exitScope();
 
-        result += TermxFontColor.get("unset");
-
         if (node.tag === "line") {
-          result += "\n";
+          result.conditionalBreak();
         }
 
-        result += this.scopeToAnsi(ScopeTracker.currentScope);
+        return result;
+      }
+      case "pre": {
+        const parentAnsi = this.scopeToAnsi(ScopeTracker.currentScope);
+
+        ScopeTracker.enterScope(this.createScope(node));
+
+        const ansiScope = this.scopeToAnsi(ScopeTracker.currentScope);
+
+        result.conditionalBreak();
+
+        for (const content of node.content) {
+          if (typeof content === "string") {
+            const subLines = content.split("\n");
+            if (subLines.length > 0) {
+              result.append(`${ansiScope}${subLines[0]!}${UNSET}${parentAnsi}`);
+
+              for (let i = 1; i < subLines.length; i++) {
+                result.add(`${ansiScope}${subLines[i]!}${UNSET}${parentAnsi}`);
+              }
+            }
+          } else {
+            const lines = this.mapContents(content, true);
+            lines.mapLines((l) => `${ansiScope}${l}${UNSET}${parentAnsi}`);
+            result.concat(lines);
+          }
+        }
+
+        ScopeTracker.exitScope();
+
+        result.conditionalBreak();
+
+        return result;
+      }
+      case "box": {
+        const border = this.getAttribute(node, "border", false);
+        const topBorder = toBool(this.getAttribute(node, "border-top", border));
+        const bottomBorder = toBool(
+          this.getAttribute(node, "border-bottom", border)
+        );
+        const leftBorder = toBool(
+          this.getAttribute(node, "border-left", border)
+        );
+        const rightBorder = toBool(
+          this.getAttribute(node, "border-right", border)
+        );
+        const padding = as(this.getAttribute(node, "padding", "0"), "string");
+        const topPadding = as(
+          this.getAttribute(node, "padding-top", padding),
+          "string"
+        );
+        const bottomPadding = as(
+          this.getAttribute(node, "padding-bottom", padding),
+          "string"
+        );
+        const leftPadding = as(
+          this.getAttribute(node, "padding-left", padding),
+          "string"
+        );
+        const rightPadding = as(
+          this.getAttribute(node, "padding-right", padding),
+          "string"
+        );
+
+        const parentAnsi = this.scopeToAnsi(ScopeTracker.currentScope);
+
+        ScopeTracker.enterScope(this.createScope(node));
+
+        const ansi = this.scopeToAnsi(ScopeTracker.currentScope);
+
+        const contentLines = node.content.reduce(
+          (lines, content) => lines.concat(this.mapContents(content)),
+          new Lines()
+        );
+
+        const targetLength = this.findLongestLineLength(contentLines);
+
+        const sidesPadding = Number(leftPadding) + Number(rightPadding);
+
+        const left = leftBorder
+          ? BORDER_CHAR.left + " ".repeat(Number(leftPadding))
+          : "";
+
+        const right = rightBorder
+          ? " ".repeat(Number(rightPadding)) + BORDER_CHAR.right
+          : "";
+
+        if (topBorder) {
+          const innerWidth = targetLength + sidesPadding;
+          let top = this.createBorderLine(innerWidth, "top");
+
+          if (leftBorder) {
+            top = BORDER_CHAR.topLeft + top;
+          }
+
+          if (rightBorder) {
+            top = top + BORDER_CHAR.topRight;
+          }
+
+          result.add(ansi + top);
+
+          const padLine = left + " ".repeat(targetLength) + right;
+          for (let i = 0; i < Number(topPadding); i++) {
+            result.add(padLine);
+          }
+
+          result.add(UNSET + parentAnsi);
+        }
+
+        if (leftBorder || rightBorder) {
+          if (!leftBorder) {
+            contentLines.mapLines(
+              (l) =>
+                this.padForLength(l, targetLength) +
+                ansi +
+                right +
+                UNSET +
+                parentAnsi
+            );
+          } else if (!rightBorder) {
+            contentLines.mapLines((l) => ansi + left + UNSET + parentAnsi + l);
+          } else {
+            contentLines.mapLines(
+              (l) =>
+                ansi +
+                left +
+                UNSET +
+                parentAnsi +
+                this.padForLength(l, targetLength) +
+                ansi +
+                right +
+                UNSET +
+                parentAnsi
+            );
+          }
+        }
+
+        result.concat(contentLines);
+
+        if (bottomBorder) {
+          const innerWidth = targetLength + sidesPadding;
+          let bottom = this.createBorderLine(innerWidth, "bottom");
+
+          if (leftBorder) {
+            bottom = BORDER_CHAR.bottomLeft + bottom;
+          }
+
+          if (rightBorder) {
+            bottom = bottom + BORDER_CHAR.bottomRight;
+          }
+
+          result.add(ansi);
+
+          const padLine = left + " ".repeat(targetLength) + right;
+          for (let i = 0; i > Number(bottomPadding); i++) {
+            if (i > 0) {
+              result.add(padLine);
+            } else {
+              result.append(padLine);
+            }
+          }
+
+          if (Number(bottomPadding) > 0) {
+            result.add(bottom);
+          } else {
+            result.append(bottom);
+          }
+        }
+
+        ScopeTracker.exitScope();
 
         return result;
       }
       case "ol":
       case "ul": {
         const prefix = this.getListElementPrefix(node);
-        const padding = this.getListPadding();
+        const parentAnsi = this.scopeToAnsi(ScopeTracker.currentScope);
 
         ScopeTracker.enterScope(this.createScope(node));
 
-        result +=
-          this.scopeToAnsi(ScopeTracker.currentScope) +
-          this.join(
-            node.content
-              .filter((c) => typeof c !== "string" || c.trim().length)
-              .map((content, i) => {
-                if (typeof content === "string" || content.tag !== "li") {
-                  throw new Error(
-                    `Invalid element inside <${node.tag}>. Each child of <${node.tag}> must be a <li> element.`
-                  );
-                }
+        const ansiScope = this.scopeToAnsi(ScopeTracker.currentScope);
 
-                const { contentPad, firstLineOffset } = this.getContentPad(
-                  node,
-                  i + 1
-                );
+        const contents = node.content.filter(
+          (c) => typeof c !== "string" || c.trim().length
+        );
 
-                const r =
-                  prefix(i) +
-                  leftPad(this.mapContents(content), contentPad).substring(
-                    firstLineOffset
-                  );
+        for (const [i, content] of contents.entries()) {
+          if (typeof content === "string" || content.tag !== "li") {
+            throw new Error(
+              `Invalid element inside <${node.tag}>. Each child of <${node.tag}> must be a <li> element.`
+            );
+          }
 
-                return leftPad(r, padding) + "\n";
-              })
-          );
+          const { contentPad } = this.getContentPad(node, i + 1);
+
+          const lines = this.mapContents(content);
+
+          lines.mapLines((l, elemLine) => {
+            if (elemLine === 0) {
+              return `${prefix(i)}${ansiScope}${l}${UNSET}${parentAnsi}`;
+            }
+
+            return `${ansiScope}${leftPad(l, contentPad)}${UNSET}${parentAnsi}`;
+          });
+
+          result.conditionalBreak();
+          result.concat(lines);
+        }
 
         ScopeTracker.exitScope();
-
-        result +=
-          TermxFontColor.get("unset") +
-          this.scopeToAnsi(ScopeTracker.currentScope);
 
         return result;
       }
       case "pad": {
+        const parentAnsi = this.scopeToAnsi(ScopeTracker.currentScope);
+
         ScopeTracker.enterScope(this.createScope(node));
 
-        const paddingAttr = this.getAttribute(node, "size") ?? 0;
+        const ansiScope = this.scopeToAnsi(ScopeTracker.currentScope);
 
-        const content =
-          this.scopeToAnsi(ScopeTracker.currentScope) +
-          this.join(node.content.map((content) => this.mapContents(content)));
+        const paddingAttr = as(this.getAttribute(node, "size", "0"), "string");
 
-        result += leftPad(content, Number(paddingAttr));
+        for (const content of node.content) {
+          const lines = this.mapContents(content);
+          result.concat(lines);
+        }
+
+        result.mapLines(
+          (l) =>
+            `${ansiScope}${leftPad(
+              l,
+              Number(paddingAttr)
+            )}${UNSET}${parentAnsi}`
+        );
 
         ScopeTracker.exitScope();
-
-        result +=
-          TermxFontColor.get("unset") +
-          this.scopeToAnsi(ScopeTracker.currentScope);
 
         return result;
       }
       case "br": {
-        return result + "\n";
+        result.conditionalBreak();
+
+        return result;
       }
       case "s": {
-        return result + " ";
+        result.append(" ");
+        return result;
       }
       case "": {
-        result += this.join(
-          node.content.map((content) => this.mapContents(content))
-        );
+        for (const content of node.content) {
+          const lines = this.mapContents(content);
+          result.concat(lines);
+        }
         return result;
       }
     }
@@ -165,31 +457,75 @@ export class MarkupFormatter {
     throw new Error(`Invalid tag: <${node.tag}>`);
   }
 
-  private static join(strings: string[]) {
+  private static join(strings: string[], separator = "") {
     let result = "";
     for (let i = 0; i < strings.length; i++) {
-      result += strings[i];
+      // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+      result += (i !== 0 ? separator : "") + strings[i];
     }
     return result;
   }
 
   private static getAttribute(
     node: MarkupNode,
+    name: string,
+    defaultValue: string | boolean
+  ): string | boolean;
+  private static getAttribute(
+    node: MarkupNode,
     name: string
-  ): string | undefined {
+  ): string | boolean | undefined;
+  private static getAttribute(
+    node: MarkupNode,
+    name: string,
+    defaultValue: string | boolean | undefined
+  ): string | boolean | undefined;
+  private static getAttribute(
+    node: MarkupNode,
+    name: string,
+    defaultValue?: string | boolean
+  ): string | boolean | undefined {
     for (const [key, value] of node.attributes) {
       if (key === name) {
-        return as(value, "string");
+        return value;
       }
     }
+    return defaultValue;
+  }
+
+  /**
+   * Counts the number of characters that will be visible in a
+   * terminal output.
+   */
+  private static countVisibleChars(str: string): number {
+    return stripAnsi(str).length;
+  }
+
+  private static padForLength(str: string, targetLength: number): string {
+    const len = this.countVisibleChars(str);
+    if (targetLength > len) {
+      return str + " ".repeat(targetLength - len);
+    }
+    return str;
+  }
+
+  private static findLongestLineLength(lines: Lines): number {
+    let max = 0;
+    lines.forEach((l) => {
+      const len = this.countVisibleChars(l);
+      if (len > max) {
+        max = len;
+      }
+    });
+    return max;
   }
 
   private static mapContents(content: MarkupNode | string, pre?: boolean) {
     if (typeof content === "string") {
       if (pre) {
-        return content;
+        return new Lines().add(content);
       }
-      return content.replaceAll("\n", "").trim();
+      return new Lines().add(content.replaceAll("\n", "").trim());
     }
 
     return this.formatMarkup(content);
@@ -208,23 +544,25 @@ export class MarkupFormatter {
       return 0;
     }
 
-    return (p - 1) * 2;
+    return p * 3;
   }
 
   private static getContentPad(node: MarkupNode, line: number) {
     if (node.tag === "ul") {
       return {
         contentPad: 2,
-        firstLineOffset: 2,
+        firstElementOffset: 2,
       };
     }
+
     const maxDigitPrefix = node.content.length.toString().length;
 
     const contentPad = node.content.length.toString().length + 2;
 
     return {
       contentPad,
-      firstLineOffset: contentPad - (maxDigitPrefix - line.toString().length),
+      firstElementOffset:
+        contentPad - (maxDigitPrefix - line.toString().length),
     };
   }
 
@@ -232,10 +570,17 @@ export class MarkupFormatter {
     node: MarkupNode
   ): (index: number) => string {
     if (node.tag === "ol") {
-      return (index) => `${index + 1}. `;
+      const listSize = node.content
+        .filter((c) => typeof c !== "string")
+        .length.toString();
+
+      return (index) => {
+        const prefixNumber = (index + 1).toString();
+        return `${prefixNumber.padStart(listSize.length)}. `;
+      };
     }
 
-    const type = this.getAttribute(node, "type") ?? "bullet";
+    const type = this.getAttribute(node, "type", "bullet");
 
     const symbol = (() => {
       switch (type) {
@@ -245,15 +590,14 @@ export class MarkupFormatter {
           return String.fromCharCode(0x25cb);
         case "square":
           return String.fromCharCode(0x25a1);
-        default:
-          throw new Error(`Invalid list type: ${type}`);
       }
+      return String.fromCharCode(0x25cf);
     })();
 
     return () => `${symbol} `;
   }
 
-  private static scopeToAnsi(scope: Scope): string {
+  private static scopeToAnsi(scope: ScopeStyles): string {
     let result = "";
 
     if (scope.noInherit) {
@@ -299,13 +643,13 @@ export class MarkupFormatter {
     return result;
   }
 
-  private static createScope(node: MarkupNode): Scope {
+  private static createScope(node: MarkupNode): ScopeStyles {
     const noInherit = node.attributes.some(
       ([key, value]) =>
         key === "no-inherit" && (value === true || value === "true")
     );
 
-    const scope: Scope = noInherit
+    const scope: ScopeStyles = noInherit
       ? { noInherit: true }
       : { ...ScopeTracker.currentScope, noInherit: false };
 
@@ -347,6 +691,31 @@ export class MarkupFormatter {
 
     return scope;
   }
+
+  private static createBorderLine(
+    length: number,
+    pos: "top" | "bottom"
+  ): string {
+    const char = pos === "top" ? BORDER_CHAR.top : BORDER_CHAR.bottom;
+    return this.join(Array.from({ length }, () => char));
+  }
+}
+
+function toBool(value: string | boolean, defaultValue = false): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  switch (value) {
+    case "1":
+    case "true":
+      return true;
+    case "0":
+    case "false":
+      return false;
+  }
+
+  return defaultValue;
 }
 
 function as(value: string | boolean, as: "string"): string;

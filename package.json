@@ -61,5 +61,8 @@
   "author": {
     "name": "Szymon Bretner (ncpa0cpl)",
     "email": "szymonb21@gmail.com"
+  },
+  "dependencies": {
+    "strip-ansi": "^7.0.1"
   }
 }

@@ -1,4 +1,4 @@
-export type Scope = {
+export type ScopeStyles = {
   tag?: string;
   color?: string;
   bg?: string;
@@ -13,18 +13,18 @@ export type Scope = {
 };
 
 export class ScopeTracker {
-  private static scopeStack: Scope[] = [
+  private static scopeStack: ScopeStyles[] = [
     {
       tag: "",
     },
   ];
-  private static _currentScope: Scope = this.scopeStack[0]!;
+  private static _currentScope: ScopeStyles = this.scopeStack[0]!;
 
-  static get currentScope(): Scope {
+  static get currentScope(): ScopeStyles {
     return this._currentScope;
   }
 
-  static enterScope(scope: Scope) {
+  static enterScope(scope: ScopeStyles) {
     const s = scope;
     this.scopeStack.push(s);
     this._currentScope = s;
@@ -35,7 +35,7 @@ export class ScopeTracker {
     this._currentScope = this.scopeStack[this.scopeStack.length - 1] ?? {};
   }
 
-  static traverseUp(callback: (scope: Readonly<Scope>) => void) {
+  static traverseUp(callback: (scope: Readonly<ScopeStyles>) => void) {
     for (let i = this.scopeStack.length - 1; i >= 0; i--) {
       callback(this.scopeStack[i]!);
     }
