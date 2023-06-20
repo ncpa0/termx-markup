@@ -1,110 +1,102 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`MarkupFormatter <ol> tag should correctly render list with numbered indexes 1`] = `
-"[0m1. [31mRed[0m
-2. [32mGreen[0m
-3. [34mBlue[0m
-[0m"
+"[0m1. [0m[31mRed
+[0m2. [0m[32mGreen
+[0m3. [0m[34mBlue[0m"
 `;
 
-exports[`MarkupFormatter <ol> tag should correctly render multiline list elements 1`] = `
-"[0m1. [31m[31mRed[0m
-   [31m[31mRed[0m[31m[0m
-2. [32m[32mGreen[0m
-   [32m[32mGreen[0m[32m[0m
-3. [34m[34mBlue[0m
-   [34m[34mBlue[0m[34m[0m
-[0m"
+exports[`MarkupFormatter <ol> tag should correctly render multiline list elements with just a few elems 1`] = `
+"[0m1. [0m[31mRed
+[0m   [0m[31mRed[0m[31m
+[0m2. [0m[32mGreen
+[0m   [0m[32mGreen[0m[32m
+[0m3. [0m[34mBlue
+[0m   [0m[34mBlue[0m"
 `;
 
 exports[`MarkupFormatter <ol> tag should correctly render multiline list elements with more than 9 elements 1`] = `
-"[0m1.  [31m[31mRed[0m
-    [31m[31mRed[0m[31m[0m
-2.  [32m[32mGreen[0m
-    [32m[32mGreen[0m[32m[0m
-3.  [34m[34mBlue[0m
-    [34m[34mBlue[0m[34m[0m
-4.  [33m[33mYellow[0m
-    [33m[33mYellow[0m[33m[0m
-5.  [35m[35mMagenta[0m
-    [35m[35mMagenta[0m[35m[0m
-6.  [36m[36mcyan[0m
-    [36m[36mcyan[0m[36m[0m
-7.  [37m[37mwhite[0m
-    [37m[37mwhite[0m[37m[0m
-8.  [91m[91mlightRed[0m
-    [91m[91mlightRed[0m[91m[0m
-9.  [92m[92mlightGreen[0m
-    [92m[92mlightGreen[0m[92m[0m
-10. [93m[93mlightYellow[0m
-    [93m[93mlightYellow[0m[93m[0m
-11. [94m[94mlightBlue[0m
-    [94m[94mlightBlue[0m[94m[0m
-[0m"
+"[0m1.  [0m[31mRed
+[0m    [0m[31mRed[0m[31m
+[0m2.  [0m[32mGreen
+[0m    [0m[32mGreen[0m[32m
+[0m3.  [0m[34mBlue
+[0m    [0m[34mBlue[0m[34m
+[0m4.  [0m[33mYellow
+[0m    [0m[33mYellow[0m[33m
+[0m5.  [0m[35mMagenta
+[0m    [0m[35mMagenta[0m[35m
+[0m6.  [0m[36mcyan
+[0m    [0m[36mcyan[0m[36m
+[0m7.  [0m[37mwhite
+[0m    [0m[37mwhite[0m[37m
+[0m8.  [0m[91mlightRed
+[0m    [0m[91mlightRed[0m[91m
+[0m9.  [0m[92mlightGreen
+[0m    [0m[92mlightGreen[0m[92m
+[0m10. [0m[93mlightYellow
+[0m    [0m[93mlightYellow[0m[93m
+[0m11. [0m[94mlightBlue
+[0m    [0m[94mlightBlue[0m"
 `;
 
 exports[`MarkupFormatter <ol> tag should correctly render multiline list elements with more than 9 nested elements 1`] = `
-"[0m1. Element 1[0m
-2. Element 2[0m
-3. Colors:[0m
-   1.  [31m[31mRed[0m
-       [31m[31mRed[0m[31m[0m
-   2.  [32m[32mGreen[0m
-       [32m[32mGreen[0m[32m[0m
-   3.  [34m[34mBlue[0m
-       [34m[34mBlue[0m[34m[0m
-   4.  [33m[33mYellow[0m
-       [33m[33mYellow[0m[33m[0m
-   5.  [35m[35mMagenta[0m
-       [35m[35mMagenta[0m[35m[0m
-   6.  [36m[36mcyan[0m
-       [36m[36mcyan[0m[36m[0m
-   7.  [37m[37mwhite[0m
-       [37m[37mwhite[0m[37m[0m
-   8.  [91m[91mlightRed[0m
-       [91m[91mlightRed[0m[91m[0m
-   9.  [92m[92mlightGreen[0m
-       [92m[92mlightGreen[0m[92m[0m
-   10. [93m[93mlightYellow[0m
-       [93m[93mlightYellow[0m[93m[0m
-   11. [94m[94mlightBlue[0m
-       [94m[94mlightBlue[0m[94m[0m
-   12. [95m[95mlightMagenta[0m
-       [95m[95mlightMagenta[0m[95m[0m
-   [0m[0m
-[0m"
+"[0m1. [0mElement 1
+[0m2. [0mElement 2
+[0m3. [0mColors:
+[0m   [0m1.  [0m[31mRed
+[0m   [0m    [0m[31mRed[0m[31m
+[0m   [0m2.  [0m[32mGreen
+[0m   [0m    [0m[32mGreen[0m[32m
+[0m   [0m3.  [0m[34mBlue
+[0m   [0m    [0m[34mBlue[0m[34m
+[0m   [0m4.  [0m[33mYellow
+[0m   [0m    [0m[33mYellow[0m[33m
+[0m   [0m5.  [0m[35mMagenta
+[0m   [0m    [0m[35mMagenta[0m[35m
+[0m   [0m6.  [0m[36mcyan
+[0m   [0m    [0m[36mcyan[0m[36m
+[0m   [0m7.  [0m[37mwhite
+[0m   [0m    [0m[37mwhite[0m[37m
+[0m   [0m8.  [0m[91mlightRed
+[0m   [0m    [0m[91mlightRed[0m[91m
+[0m   [0m9.  [0m[92mlightGreen
+[0m   [0m    [0m[92mlightGreen[0m[92m
+[0m   [0m10. [0m[93mlightYellow
+[0m   [0m    [0m[93mlightYellow[0m[93m
+[0m   [0m11. [0m[94mlightBlue
+[0m   [0m    [0m[94mlightBlue[0m[94m
+[0m   [0m12. [0m[95mlightMagenta
+[0m   [0m    [0m[95mlightMagenta[0m[95m
+[0m   [0m"
 `;
 
 exports[`MarkupFormatter <ol> tag should correctly render nested list 1`] = `
-"[0m1. [31mRed[0m
-2. [32mGreen[0m
-3. Shades of blue[0m
-   1. [34mBlue[0m
-   2. [38;2;0;147;175mMunsell[0m
-   3. [38;2;204;204;255mPeriwinkle[0m
-   [0m[0m
-[0m"
+"[0m1. [0m[31mRed
+[0m2. [0m[32mGreen
+[0m3. [0mShades of blue
+[0m   [0m1. [0m[34mBlue
+[0m   [0m2. [0m[38;2;0;147;175mMunsell
+[0m   [0m3. [0m[38;2;204;204;255mPeriwinkle
+[0m   [0m"
 `;
 
 exports[`MarkupFormatter <pad> tag should correctly add padding for multiline text 1`] = `
-"[0m  Line 1[0m
-  Line 2[0m
-  Line 3[0m
-  [0m"
+"[0m  [0mLine 1
+[0m  [0mLine 2
+[0m  [0mLine 3[0m"
 `;
 
 exports[`MarkupFormatter <pad> tag should correctly add padding for multiline text with nested tags 1`] = `
-"[0m  Line 1[0m
-  Line 2[0m
-  tag 1[0m tag 2[0m[0m
-  [0m"
+"[0m  [0mLine 1
+[0m  [0mLine 2
+[0m  [0mtag 1[0m [0mtag 2[0m"
 `;
 
 exports[`MarkupFormatter <pad> tag should correctly add padding for nested pad tags 1`] = `
-"[0m  Line 1[0m
-  Line 2[0m
-    tag 1[0m tag 2[0m[0m[0m
-  [0m"
+"[0m  [0mLine 1
+[0m  [0mLine 2
+[0m  [0m  [0mtag 1[0m [0mtag 2[0m"
 `;
 
 exports[`MarkupFormatter <pad> tag should correctly add padding for simple text 1`] = `"[0m  Test[0m"`;
@@ -112,58 +104,49 @@ exports[`MarkupFormatter <pad> tag should correctly add padding for simple text 
 exports[`MarkupFormatter <pad> tag should not do anything id the size is not specified 1`] = `"[0mTest[0m"`;
 
 exports[`MarkupFormatter <ul> tag should correctly render list with bullet indexes 1`] = `
-"[0m● [31mRed[0m
-● [32mGreen[0m
-● [34mBlue[0m
-[0m"
+"[0m● [0m[31mRed
+[0m● [0m[32mGreen
+[0m● [0m[34mBlue[0m"
 `;
 
 exports[`MarkupFormatter <ul> tag should correctly render multiline list elements 1`] = `
-"[0m□ [31m[31mRed[0m
-  [31m[31mRed[0m[31m[0m
-□ [32m[32mGreen[0m
-  [32m[32mGreen[0m[32m[0m
-□ [34m[34mBlue[0m
-  [34m[34mBlue[0m[34m[0m
-[0m"
+"[0m□ [0m[31mRed
+[0m  [0m[31mRed[0m[31m
+[0m□ [0m[32mGreen
+[0m  [0m[32mGreen[0m[32m
+[0m□ [0m[34mBlue
+[0m  [0m[34mBlue[0m"
 `;
 
 exports[`MarkupFormatter <ul> tag should correctly render nested list 1`] = `
-"[0m● [31mRed[0m
-● [32mGreen[0m
-● Shades of blue[0m
-  ○ [34mBlue[0m
-  ○ [38;2;0;147;175mMunsell[0m
-  ○ [38;2;204;204;255mPeriwinkle[0m
-  [0m[0m
-[0m"
+"[0m● [0m[31mRed
+[0m● [0m[32mGreen
+[0m● [0mShades of blue
+[0m  [0m○ [0m[34mBlue
+[0m  [0m○ [0m[38;2;0;147;175mMunsell
+[0m  [0m○ [0m[38;2;204;204;255mPeriwinkle
+[0m  [0m"
 `;
 
 exports[`MarkupFormatter should correctly format the xml scenario 1 1`] = `
-"[0mHello World[0m
-[31mRed[34m or blue? [0m[31mtext[0m
-This[0m is [0mone [0mline[0m[0m
-"
+"[0mHello World
+[0m[31mRed[0m[34m or blue? [0m[31mtext
+[0mThis[0m is [0mone [0mline[0m"
 `;
 
 exports[`MarkupFormatter should correctly format the xml scenario 2 1`] = `"[0m[31mRed[0m[32mGreen[0m[34mBlue[0mNormal[0m"`;
 
 exports[`MarkupFormatter should correctly format the xml scenario 3 1`] = `
 "[0m[31mRed[0m
-[32mGreen[0m
-[34mBlue[0m
-Normal[0m"
+[0m[32mGreen[0m
+[0m[34mBlue[0m
+[0mNormal[0m"
 `;
 
-exports[`MarkupFormatter should correctly format the xml scenario 4 1`] = `
-"[0m[1m[3m[4m
-          [31m[1m[3m[4mRed[0m[1m[3m[4m
-          [32m[1m[3m[4mGreen[0m[1m[3m[4m
-        [0m"
-`;
+exports[`MarkupFormatter should correctly format the xml scenario 4 1`] = `"[0m[31m[1m[3m[4m Red [0m[32m[1m[3m[4m Green [0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 5 1`] = `"[0m[33m[1m[5m[33m[1m[5mLorem [0m[33m[1m[5m[34m[1m[5m[34m[1m[5mipsum [0m[34m[1m[5m[32m[1m[2m[5m[32m[1m[2m[5mdolor [0m[32m[1m[2m[5m[32m[1m[2m[5m[7m[32m[1m[2m[5m[7msit [0m[32m[1m[2m[5m[7m[0m[32m[1m[2m[5m[32m[1m[2m[5mamet[0m[32m[1m[2m[5m[0m[34m[1m[5m[34m[1m[5m consectetur [0m[34m[1m[5m[0m[33m[1m[5m[33m[1m[5madipiscing [0m[33m[1m[5m[0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 5 1`] = `"[0m[33m[1m[5mLorem [0m[34m[1m[5mipsum [0m[32m[1m[2m[5mdolor [0m[32m[1m[2m[5m[7msit [0m[32m[1m[2m[5mamet[0m[34m[1m[5m consectetur [0m[33m[1m[5madipiscing [0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 6 1`] = `"[0m[38;2;245;170;66m[38;2;137;245;209mGreen[0m[38;2;245;170;66m[38;2;245;170;66m [0m[38;2;245;170;66m[34mBlue[0m[38;2;245;170;66m[38;2;245;170;66m [0m[38;2;245;170;66mOrange[0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 6 1`] = `"[0m[38;2;137;245;209mGreen[0m[38;2;245;170;66m [0m[34mBlue[0m[38;2;245;170;66m [0m[38;2;245;170;66mOrange[0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 7 1`] = `"[0m[33m[4m[33m[4mLorem [0m[33m[4m[0m[34m[9m[34m[9mipsum [0m[0m[34m[9m[32m[2m[9m[32m[2m[9mdolor [0m[32m[2m[9m[0m[0m[34m[9m[34m[9m sit [0m[0m[34m[9m[0m[33m[4m[33m[4mamet[0m[33m[4m[0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 7 1`] = `"[0m[33m[4mLorem [0m[34m[9mipsum [0m[32m[2m[9mdolor [0m[34m[9m sit [0m[33m[4mamet[0m"`;

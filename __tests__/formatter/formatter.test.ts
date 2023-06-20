@@ -55,10 +55,10 @@ describe("MarkupFormatter", () => {
 
     it("scenario 4", () => {
       const xml = html`
-        <pre bold italic underscore>
-          <span color="red"> Red </span>
-          <span color="green"> Green </span>
-        </pre>
+        <span bold italic underscore>
+          <pre color="red"> Red </pre>
+          <pre color="green"> Green </pre>
+        </span>
       `;
 
       const formatted = MarkupFormatter.format(xml);
@@ -164,7 +164,7 @@ describe("MarkupFormatter", () => {
       expect(formattedXml).toMatchSnapshot();
     });
 
-    it("should correctly render multiline list elements", () => {
+    it("should correctly render multiline list elements with just a few elems", () => {
       const xml = html`
         <ol>
           <li color="red">
@@ -430,8 +430,6 @@ describe("MarkupFormatter", () => {
       `;
 
       const formattedXml = MarkupFormatter.format(xml);
-
-      console.log(formattedXml);
 
       expect(formattedXml).toMatchSnapshot();
     });
