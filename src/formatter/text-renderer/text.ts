@@ -1,5 +1,5 @@
-import { TermxBgColor } from "../../colors/termx-bg-color";
-import { TermxFontColor } from "../../colors/termx-font-colors";
+import { TermxBgColors } from "../../colors/termx-bg-color";
+import { TermxFontColors } from "../../colors/termx-font-colors";
 import type { Styles } from "./styles";
 
 const escape = "\u001b";
@@ -17,11 +17,11 @@ export class CharacterGroup {
     let result = "";
 
     if (style.color) {
-      result += TermxFontColor.get(style.color);
+      result += TermxFontColors.get(style.color);
     }
 
     if (style.bg) {
-      result += TermxBgColor.get(style.bg);
+      result += TermxBgColors.get(style.bg);
     }
 
     if (style.bold) {

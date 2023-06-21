@@ -130,7 +130,7 @@ exports[`MarkupFormatter <ul> tag should correctly render nested list 1`] = `
 
 exports[`MarkupFormatter should correctly format the xml scenario 1 1`] = `
 "[0mHello World
-[0m[31mRed[0m[34m or blue? [0m[31mtext
+[0m[31m[1mRed[0m[34m[1m or blue? [0m[31m[1mtext
 [0mThis[0m is [0mone [0mline[0m"
 `;
 

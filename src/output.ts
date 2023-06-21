@@ -1,4 +1,4 @@
-import { TermxFontColor } from "./colors/termx-font-colors";
+import { TermxFontColors } from "./colors/termx-font-colors";
 import { MarkupFormatter } from "./formatter/formatter";
 
 /**
@@ -106,9 +106,9 @@ export class Output {
       }
     } catch (e) {
       this._printFn(
-        TermxFontColor.get("red") +
+        TermxFontColors.get("red") +
           "Failed to format/print given markup." +
-          TermxFontColor.get("unset") +
+          TermxFontColors.get("unset") +
           "\n"
       );
       this.printError(e);
@@ -129,9 +129,9 @@ export class Output {
       }
     } catch (e) {
       this._printFn(
-        TermxFontColor.get("red") +
+        TermxFontColors.get("red") +
           "Failed to format/print given markup." +
-          TermxFontColor.get("unset") +
+          TermxFontColors.get("unset") +
           "\n"
       );
       this.printError(e);

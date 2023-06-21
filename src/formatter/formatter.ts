@@ -1,5 +1,5 @@
-import { TermxBgColor } from "../colors/termx-bg-color";
-import { TermxFontColor } from "../colors/termx-font-colors";
+import { TermxBgColors } from "../colors/termx-bg-color";
+import { TermxFontColors } from "../colors/termx-font-colors";
 import { desanitizeHtml } from "../html-tag";
 import type { MarkupNode } from "../markup-parser";
 import { parseMarkup } from "../markup-parser";
@@ -38,8 +38,8 @@ export class MarkupFormatter {
   ): void;
   static defineColor(name: string, r: number, g: number, b: number): void;
   static defineColor(name: string, ...args: any[]) {
-    TermxBgColor.define(name, ...args);
-    TermxFontColor.define(name, ...args);
+    TermxBgColors.define(name, ...args);
+    TermxFontColors.define(name, ...args);
   }
 
   static format(

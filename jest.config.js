@@ -1,4 +1,4 @@
-/** @type {import("ts-jest/dist/types").InitialOptionsTsJest} */
+/** @type {import("jest").Config} */
 module.exports = {
   testRegex: ".*__tests__/.+(.test.(ts|js|tsx|jsx))$",
   transform: {
@@ -30,6 +30,7 @@ module.exports = {
   roots: ["<rootDir>"],
   collectCoverageFrom: ["src/**/*.(ts|js|tsx|jsx)"],
   coverageReporters: ["html", "text"],
+  setupFilesAfterEnv: ["<rootDir>/__tests__/__setup/jest-setup.js"],
   coverageThreshold: {
     global: {
       branches: 0,

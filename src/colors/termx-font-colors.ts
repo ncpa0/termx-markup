@@ -2,7 +2,7 @@ import { TermxColors } from "./termx-colors";
 
 const escape = "\u001b";
 
-export class TermxFontColor extends TermxColors {
+export class TermxFontColors extends TermxColors {
   protected static predefinedColors = {
     unset: `${escape}[0m`,
     red: `${escape}[31m`,

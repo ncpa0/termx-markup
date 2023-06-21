@@ -6,7 +6,7 @@ describe("MarkupFormatter", () => {
     it("scenario 1", () => {
       const xml = html`
         <line>Hello World</line>
-        <line color="red">
+        <line bold color="red">
           Red
           <pre color="blue"> or blue? </pre>
           text
@@ -20,6 +20,22 @@ describe("MarkupFormatter", () => {
       `;
 
       const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        "Hello World\nRed or blue? text\nThis is one line"
+      );
+      expect(formatted).toContainAnsiStringWithStyles("Red", {
+        color: "red",
+        bold: true,
+      });
+      expect(formatted).toContainAnsiStringWithStyles(" or blue? ", {
+        color: "blue",
+        bold: true,
+      });
+      expect(formatted).toContainAnsiStringWithStyles("text", {
+        color: "red",
+        bold: true,
+      });
 
       expect(formatted).toMatchSnapshot();
     });
