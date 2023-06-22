@@ -16,14 +16,14 @@ jobs:
           ref: master
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - name: Installing dependencies
-        run: ./.yarn/releases/yarn-3.3.1.cjs
+        run: ./.yarn/releases/yarn-1.22.19.cjs --frozen-lockfile
       - name: Validating TypeScript
-        run: ./.yarn/releases/yarn-3.3.1.cjs test:tsc
+        run: ./.yarn/releases/yarn-1.22.19.cjs test:tsc
       - name: Validating ESLint
-        run: ./.yarn/releases/yarn-3.3.1.cjs test:lint
+        run: ./.yarn/releases/yarn-1.22.19.cjs test:lint
       - name: Validating Prettier
-        run: ./.yarn/releases/yarn-3.3.1.cjs test:prettier
+        run: ./.yarn/releases/yarn-1.22.19.cjs test:prettier
       - name: Running Unit Tests
-        run: ./.yarn/releases/yarn-3.3.1.cjs test:jest
+        run: ./.yarn/releases/yarn-1.22.19.cjs test:jest

@@ -1,6 +1,6 @@
 {
   "name": "termx-markup",
-  "packageManager": "yarn@3.3.1",
+  "packageManager": "yarn@1.22.19",
   "devDependencies": {
     "@ncpa0cpl/nodepack": "^2.0.3",
     "@swc/core": "latest",

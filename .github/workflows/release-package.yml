@@ -26,15 +26,15 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
       - name: Installing dependencies
-        run: ./.yarn/releases/yarn-3.3.1.cjs
+        run: ./.yarn/releases/yarn-1.22.19.cjs --frozen-lockfile
       - name: Validating TypeScript
-        run: ./.yarn/releases/yarn-3.3.1.cjs test:tsc
+        run: ./.yarn/releases/yarn-1.22.19.cjs test:tsc
       - name: Running Unit Tests
-        run: ./.yarn/releases/yarn-3.3.1.cjs test:jest
+        run: ./.yarn/releases/yarn-1.22.19.cjs test:jest
       - name: Building package
-        run: ./.yarn/releases/yarn-3.3.1.cjs build
+        run: ./.yarn/releases/yarn-1.22.19.cjs build
       - name: Publishing
         env:
           NPM_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
