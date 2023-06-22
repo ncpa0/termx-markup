@@ -10,4 +10,10 @@ describe("html", () => {
       "<div>&lt;script&gt;alert('hello')&lt;/script&gt;</div>"
     );
   });
+
+  it("should escape any trailing backslashes", () => {
+    expect(html`<div>${"<script>alert('hello')</script>\\"}</div>`).toBe(
+      "<div>&lt;script&gt;alert('hello')&lt;/script&gt;\\\\</div>"
+    );
+  });
 });

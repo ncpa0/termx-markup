@@ -1,10 +1,11 @@
 /**
- * Creates a html string from the given template literal. Each parameter
- * in the template literal is escaped to not include xml tag characters.
+ * Creates a html string from the given template literal. Each
+ * parameter in the template literal is escaped to not include
+ * xml tag characters.
  *
  * @example
- *  html`<div>${"<span>hello</span>"}</div>`;
- *  // > <div>&lt;span&gt;hello&lt;/span&gt;</div>
+ *   html`<div>${"<span>hello</span>"}</div>`;
+ *   // > <div>&lt;span&gt;hello&lt;/span&gt;</div>
  */
 export function html(...args: any[]): string {
   const b = args[0];
@@ -42,8 +43,31 @@ export function raw(html: string): RawHtml {
   return new RawHtml(html);
 }
 
+function isEscaped(str: string, position: number): boolean {
+  let backslashCount = 0;
+
+  for (let i = position - 1; i >= 0; i--) {
+    if (str[i] === "\\") {
+      backslashCount++;
+    } else {
+      break;
+    }
+  }
+
+  return backslashCount % 2 === 1;
+}
+
 function sanitizeHtml(html: string): string {
-  return html.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const result = html.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const lastIndex = result.length - 1;
+  if (result[lastIndex] === "\\") {
+    if (!isEscaped(result, lastIndex)) {
+      return result + "\\";
+    }
+  }
+
+  return result;
 }
 
 export function desanitizeHtml(html: string): string {
