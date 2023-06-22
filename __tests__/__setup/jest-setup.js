@@ -1,10 +1,15 @@
-/** @typedef {import("../dist/cjs/formatter/text-renderer/styles").Styles} Styles */
+/** @typedef {import("../../dist/types/formatter/text-renderer/styles").Styles} Styles */
+/** @typedef {typeof import("../../dist/types/colors/termx-font-colors").TermxFontColors} FontColors */
+/** @typedef {typeof import("../../dist/types/colors/termx-bg-color").TermxBgColors} BgColors */
 
 const stripAnsi = require("./strip-ansi.js").default;
-const { TermxBgColors } = require("../../dist/cjs/colors/termx-bg-color.cjs");
-const {
-  TermxFontColors,
-} = require("../../dist/cjs/colors/termx-font-colors.cjs");
+/** @type {BgColors} */
+const TermxBgColors =
+  require("../../dist/cjs/colors/termx-bg-color.cjs").TermxBgColors;
+/** @type {FontColors} */
+const TermxFontColors =
+  require("../../dist/cjs/colors/termx-font-colors.cjs").TermxFontColors;
+const MarkupFormatter = require("../../src/index").MarkupFormatter;
 
 const green = TermxFontColors.get("green");
 const red = TermxFontColors.get("red");
@@ -19,7 +24,26 @@ const Blink = `${escape}[5m`;
 const Inverted = `${escape}[7m`;
 const StrikeThrough = `${escape}[9m`;
 
-expect.extend({
+const predefinedFontColors = Object.values(
+  TermxFontColors["predefinedColors"]
+).filter((ansi) => ansi !== unset);
+const predefinedBgColors = Object.values(
+  TermxBgColors["predefinedColors"]
+).filter((ansi) => ansi !== unset);
+
+/** @param {string} value */
+const formatExpectedReceived = (value) =>
+  '"' +
+  value
+    .split("\n")
+    .map((line, i) => {
+      if (i === 0) return line;
+      return " ".repeat(11) + line;
+    })
+    .join("\n") +
+  '"';
+
+const customMatchers = {
   /**
    * @param {string} received
    * @param {string} expected
@@ -34,28 +58,16 @@ expect.extend({
       };
     }
 
-    const displayExpected = expected
-      .split("\n")
-      .map((line, i) => {
-        if (i === 0) return line;
-        return " ".repeat(11) + line;
-      })
-      .join("\n");
+    const displayExpected = formatExpectedReceived(expected);
 
-    const displayReceived = stripped
-      .split("\n")
-      .map((line, i) => {
-        if (i === 0) return line;
-        return " ".repeat(11) + line;
-      })
-      .join("\n");
+    const displayReceived = formatExpectedReceived(stripped);
 
     return {
       message: () => `Received string does not match the expected string.
-
-Expected: "${displayExpected}"
-
-Received: "${displayReceived}"`,
+  
+  Expected: ${displayExpected}
+  
+  Received: ${displayReceived}`,
       pass: false,
     };
   },
@@ -64,8 +76,19 @@ Received: "${displayReceived}"`,
    * @param {string} expected
    * @param {Styles} styles
    */
-  toContainAnsiStringWithStyles(received, expected, styles) {
-    const strStartIndex = received.indexOf(expected);
+  toContainAnsiStringWithStyles(received, expected, styles, offset = 0) {
+    const strStartIndex = received.indexOf(expected, offset);
+
+    if (strStartIndex === -1) {
+      return {
+        message: () => `Received string does not contain the expected substring.
+  
+  Expected: ${formatExpectedReceived(expected)}
+          
+  Received: ${formatExpectedReceived(received)}`,
+        pass: false,
+      };
+    }
 
     /** @type {string[]} */
     let ansi = [];
@@ -73,6 +96,10 @@ Received: "${displayReceived}"`,
 
     for (let i = strStartIndex - 1; i >= 0; i--) {
       const char = received[i];
+
+      if (char === "\n") {
+        continue;
+      }
 
       if (nextAnsi === "" && char !== "m") {
         break;
@@ -91,77 +118,103 @@ Received: "${displayReceived}"`,
     const errors = [];
 
     if (styles.bg) {
-      const expectedBg = TermxBgColors.get(styles.bg);
-      const hasStyle = ansi.some((ansi) => ansi === expectedBg);
+      if (styles.color === "none") {
+        const hasAnyColor = ansi.some((ansi) => {
+          if (predefinedBgColors.includes(ansi)) {
+            return true;
+          } else if (ansi.startsWith(`${escape}[48;2;`)) {
+            return true;
+          }
+          return false;
+        });
 
-      if (!hasStyle) {
-        errors.push({ styleName: "Background Color", expected: styles.bg });
+        if (hasAnyColor) {
+          errors.push({
+            styleName: "Background Color",
+            expected: styles.color,
+          });
+        }
+      } else {
+        const expectedBg = TermxBgColors.get(styles.bg);
+        const hasStyle = ansi.some((ansi) => ansi === expectedBg);
+
+        if (!hasStyle) {
+          errors.push({ styleName: "Background Color", expected: styles.bg });
+        }
       }
     }
 
     if (styles.color) {
-      const expectedColor = TermxFontColors.get(styles.color);
-      const hasStyle = ansi.some((ansi) => ansi === expectedColor);
+      if (styles.color === "none") {
+        const hasAnyColor = ansi.some((ansi) => {
+          if (predefinedFontColors.includes(ansi)) {
+            return true;
+          } else if (ansi.startsWith(`${escape}[38;2;`)) {
+            return true;
+          }
+          return false;
+        });
 
-      if (!hasStyle) {
-        errors.push({ styleName: "Text Color", expected: styles.color });
+        if (hasAnyColor) {
+          errors.push({ styleName: "Text Color", expected: styles.color });
+        }
+      } else {
+        const expectedColor = TermxFontColors.get(styles.color);
+        const hasExpectedColor = ansi.some((ansi) => ansi === expectedColor);
+
+        if (!hasExpectedColor) {
+          errors.push({ styleName: "Text Color", expected: styles.color });
+        }
       }
     }
 
-    if (styles.bold) {
-      const hasStyle = ansi.some((ansi) => ansi === Bold);
-
-      if (!hasStyle) {
-        errors.push({ styleName: "Bold", expected: "true" });
-      }
+    const hasBold = ansi.some((ansi) => ansi === Bold);
+    if (styles.bold === true && !hasBold) {
+      errors.push({ styleName: "Bold", expected: "true" });
+    } else if (styles.bold === false && hasBold) {
+      errors.push({ styleName: "Bold", expected: "false" });
     }
 
-    if (styles.dimmed) {
-      const hasStyle = ansi.some((ansi) => ansi === Dimmed);
-
-      if (!hasStyle) {
-        errors.push({ styleName: "Dimmed", expected: "true" });
-      }
+    const hasDimmed = ansi.some((ansi) => ansi === Dimmed);
+    if (styles.dimmed === true && !hasDimmed) {
+      errors.push({ styleName: "Dimmed", expected: "true" });
+    } else if (styles.dimmed === false && hasDimmed) {
+      errors.push({ styleName: "Dimmed", expected: "false" });
     }
 
-    if (styles.italic) {
-      const hasStyle = ansi.some((ansi) => ansi === Italic);
-
-      if (!hasStyle) {
-        errors.push({ styleName: "Italic", expected: "true" });
-      }
+    const hasItalic = ansi.some((ansi) => ansi === Italic);
+    if (styles.italic === true && !hasItalic) {
+      errors.push({ styleName: "Italic", expected: "true" });
+    } else if (styles.italic === false && hasItalic) {
+      errors.push({ styleName: "Italic", expected: "false" });
     }
 
-    if (styles.underscore) {
-      const hasStyle = ansi.some((ansi) => ansi === Underscore);
-
-      if (!hasStyle) {
-        errors.push({ styleName: "Underscore", expected: "true" });
-      }
+    const hasUnderscore = ansi.some((ansi) => ansi === Underscore);
+    if (styles.underscore === true && !hasUnderscore) {
+      errors.push({ styleName: "Underscore", expected: "true" });
+    } else if (styles.underscore === false && hasUnderscore) {
+      errors.push({ styleName: "Underscore", expected: "false" });
     }
 
-    if (styles.blink) {
-      const hasStyle = ansi.some((ansi) => ansi === Blink);
-
-      if (!hasStyle) {
-        errors.push({ styleName: "Blink", expected: "true" });
-      }
+    const hasBlink = ansi.some((ansi) => ansi === Blink);
+    if (styles.blink === true && !hasBlink) {
+      errors.push({ styleName: "Blink", expected: "true" });
+    } else if (styles.blink === false && hasBlink) {
+      errors.push({ styleName: "Blink", expected: "false" });
     }
 
-    if (styles.inverted) {
-      const hasStyle = ansi.some((ansi) => ansi === Inverted);
-
-      if (!hasStyle) {
-        errors.push({ styleName: "Inverted", expected: "true" });
-      }
+    const hasInverted = ansi.some((ansi) => ansi === Inverted);
+    if (styles.inverted === true && !hasInverted) {
+      errors.push({ styleName: "Inverted", expected: "true" });
+    } else if (styles.inverted === false && hasInverted) {
+      errors.push({ styleName: "Inverted", expected: "false" });
     }
 
-    if (styles.strikethrough) {
-      const hasStyle = ansi.some((ansi) => ansi === StrikeThrough);
-
-      if (!hasStyle) {
-        errors.push({ styleName: "Strike-Through", expected: "true" });
-      }
+    const hasStrikethrough = ansi.some((ansi) => ansi === StrikeThrough);
+    if (styles.strikethrough === true && !hasStrikethrough) {
+      errors.push({ styleName: "Strike-Through", expected: "true" });
+    } else if (styles.strikethrough === false && hasStrikethrough) {
+      errors.push({ styleName: "Strike-Through", expected: "false" });
     }
 
     if (errors.length === 0) {
@@ -169,6 +222,18 @@ Received: "${displayReceived}"`,
         message: () => "",
         pass: true,
       };
+    }
+
+    const nextOffset = strStartIndex + expected.length;
+    const next = this.toContainAnsiStringWithStyles(
+      received,
+      expected,
+      styles,
+      nextOffset
+    );
+
+    if (next.pass) {
+      return next;
     }
 
     return {
@@ -183,4 +248,25 @@ Received: "${displayReceived}"`,
       pass: false,
     };
   },
+};
+
+customMatchers.toContainAnsiStringWithStyles =
+  customMatchers.toContainAnsiStringWithStyles.bind(customMatchers);
+customMatchers.toMatchAnsiString =
+  customMatchers.toMatchAnsiString.bind(customMatchers);
+
+expect.extend(customMatchers);
+
+const format = MarkupFormatter.format.bind(MarkupFormatter);
+jest.spyOn(MarkupFormatter, "format").mockImplementation((...args) => {
+  const formatted = format(...args);
+
+  if (process.env["DISPLAY_RESULTS"] === "true") {
+    process.stdout.write(
+      `\u001b[1m${expect.getState().currentTestName}:\u001b[0m\n\n` +
+        formatted +
+        "\n\n"
+    );
+  }
+  return formatted;
 });

@@ -35,6 +35,7 @@
     "fix:lint": "eslint --fix .",
     "fix:prettier": "prettier -w ./src .",
     "test:jest": "jest --coverage",
+    "test:jest:debug": "DISPLAY_RESULTS=true jest",
     "test:lint": "eslint .",
     "test:prettier": "prettier -c ./src && prettier -c ./__tests__",
     "test:tsc": "tsc --noEmit",
