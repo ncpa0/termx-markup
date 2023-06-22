@@ -55,7 +55,9 @@ export class CharacterGroup {
     return result;
   }
 
-  constructor(public readonly tag: string, public readonly styles: Styles) {}
+  private style: string | null = null;
+
+  constructor(public readonly styles: Styles) {}
 
   createChars(value: string): Character[] {
     const chars: Character[] = [];
@@ -68,7 +70,15 @@ export class CharacterGroup {
   }
 
   renderStyles(): string {
-    return `${Unset}${CharacterGroup.styleToAnsi(this.styles)}`;
+    if (this.style) {
+      return this.style;
+    }
+    this.style = `${Unset}${CharacterGroup.styleToAnsi(this.styles)}`;
+    return this.style;
+  }
+
+  isEqual(other: CharacterGroup): boolean {
+    return other.renderStyles() === this.renderStyles();
   }
 }
 
@@ -97,6 +107,10 @@ export class TextRenderer {
 
   get lastGroup(): CharacterGroup | undefined {
     return this.characters[this.characters.length - 1]?.group;
+  }
+
+  get lastCharacter(): Character | undefined {
+    return this.characters[this.characters.length - 1];
   }
 
   prependAllLines(chars: Character[]) {
@@ -161,7 +175,7 @@ export class TextRenderer {
     for (let i = 0; i < this.characters.length; i++) {
       const character = this.characters[i]!;
 
-      if (character.group !== group) {
+      if (!group || !group.isEqual(character.group)) {
         group = character.group;
         result += group.renderStyles();
       }

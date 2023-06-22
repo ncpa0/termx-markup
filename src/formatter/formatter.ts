@@ -44,29 +44,24 @@ export class MarkupFormatter {
 
   static format(
     markup: string,
-    opt?: { keepTrailingEndLine?: boolean }
+    opt?: { keepTrailingNewLine?: boolean }
   ): string {
     const node = parseMarkup(markup);
-    const text = this.parse(node);
+    const text = this.parse(node, new TextRenderer());
 
-    if (opt?.keepTrailingEndLine !== false) {
+    if (opt?.keepTrailingNewLine !== true) {
       text.removeTrailingNewLine();
     }
 
     return desanitizeHtml(text.render());
   }
 
-  private static parse(node: MarkupNode): TextRenderer {
-    const result = new TextRenderer();
-
+  private static parse(node: MarkupNode, result: TextRenderer): TextRenderer {
     switch (node.tag) {
       case "pre": {
         ScopeTracker.enterScope(this.createScope(node));
 
-        const charGroup = new CharacterGroup(
-          node.tag,
-          ScopeTracker.currentScope
-        );
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
         for (let i = 0; i < node.content.length; i++) {
           const content = node.content[i]!;
@@ -84,15 +79,45 @@ export class MarkupFormatter {
 
         return result;
       }
-      case "li":
+      case "li": {
+        ScopeTracker.enterScope(this.createScope(node));
+
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+
+        const contents = node.content
+          .map((c) => (typeof c === "string" ? this.parseStringContent(c) : c))
+          .filter((c) => (typeof c === "string" ? c.trim().length : true));
+
+        for (let i = 0; i < contents.length; i++) {
+          const isLast = i === contents.length - 1;
+          const content = contents[i]!;
+
+          if (typeof content === "string") {
+            result.appendText(
+              charGroup.createChars(this.parseStringContent(content))
+            );
+          } else {
+            if ((content.tag === "ol" || content.tag === "ul") && i !== 0) {
+              result.appendText(charGroup.createChars("\n"));
+            }
+
+            this.parse(content, result);
+
+            if ((content.tag === "ol" || content.tag === "ul") && !isLast) {
+              result.appendText(charGroup.createChars("\n"));
+            }
+          }
+        }
+
+        ScopeTracker.exitScope();
+
+        return result;
+      }
       case "line":
       case "span": {
         ScopeTracker.enterScope(this.createScope(node));
 
-        const charGroup = new CharacterGroup(
-          node.tag,
-          ScopeTracker.currentScope
-        );
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
         for (let i = 0; i < node.content.length; i++) {
           const content = node.content[i]!;
@@ -102,12 +127,11 @@ export class MarkupFormatter {
               charGroup.createChars(this.parseStringContent(content))
             );
           } else {
-            const subText = this.parse(content);
-            result.concat(subText);
+            this.parse(content, result);
           }
         }
 
-        if (node.tag === "line" || node.tag === "li") {
+        if (node.tag === "line") {
           result.appendText(charGroup.createChars("\n"));
         }
 
@@ -120,18 +144,26 @@ export class MarkupFormatter {
         const prefix = this.getListElementPrefix(node);
         const padding = this.getListPadding();
 
+        const isNested = ScopeTracker.isImmediateChildOf("li");
+
         ScopeTracker.enterScope(this.createScope(node));
 
-        const charGroup = new CharacterGroup(
-          node.tag,
-          ScopeTracker.currentScope
-        );
+        const unstyledCharGroup = new CharacterGroup({
+          bg: ScopeTracker.currentScope.bg,
+          inverted: ScopeTracker.currentScope.inverted,
+        });
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+
+        if (result.length > 0 && result.lastCharacter?.value !== "\n") {
+          result.appendText(charGroup.createChars("\n"));
+        }
 
         const contentList = node.content.filter(
           (c) => typeof c !== "string" || c.trim().length
         );
 
         for (let i = 0; i < contentList.length; i++) {
+          const isLast = i === contentList.length - 1;
           const content = contentList[i]!;
 
           if (typeof content === "string" || content.tag !== "li") {
@@ -146,14 +178,21 @@ export class MarkupFormatter {
             i + 1
           );
 
-          const subText = this.parse(content);
+          const subText = this.parse(content, new TextRenderer());
 
           subText.prependAllLines(
-            charGroup.createChars(" ".repeat(contentPad))
+            unstyledCharGroup.createChars(" ".repeat(contentPad))
           );
           subText.slice(firstLineOffset);
+          subText.prependText(unstyledCharGroup.createChars(" "));
           subText.prependText(charGroup.createChars(prefix(i)));
-          subText.prependAllLines(charGroup.createChars(" ".repeat(padding)));
+          subText.prependAllLines(
+            unstyledCharGroup.createChars(" ".repeat(padding))
+          );
+
+          if (!isLast || !isNested) {
+            subText.appendText(charGroup.createChars("\n"));
+          }
 
           result.concat(subText);
         }
@@ -165,28 +204,28 @@ export class MarkupFormatter {
       case "pad": {
         ScopeTracker.enterScope(this.createScope(node));
 
-        const charGroup = new CharacterGroup(
-          node.tag,
-          ScopeTracker.currentScope
-        );
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
         const paddingAttr = Number(this.getAttribute(node, "size") ?? 0);
+
+        const contentText = new TextRenderer();
 
         for (let i = 0; i < node.content.length; i++) {
           const content = node.content[i]!;
 
           if (typeof content === "string") {
-            result.appendText(
+            contentText.appendText(
               charGroup.createChars(this.parseStringContent(content))
             );
           } else {
-            const subText = this.parse(content);
-            result.concat(subText);
+            this.parse(content, contentText);
           }
         }
 
         const padding = leftPad("", paddingAttr);
-        result.prependAllLines(charGroup.createChars(padding));
+        contentText.prependAllLines(charGroup.createChars(padding));
+
+        result.concat(contentText);
 
         ScopeTracker.exitScope();
 
@@ -194,22 +233,19 @@ export class MarkupFormatter {
       }
       case "br": {
         const charGroup =
-          result.lastGroup ??
-          new CharacterGroup(node.tag, ScopeTracker.currentScope);
+          result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
 
         return result.appendText(charGroup.createChars("\n"));
       }
       case "s": {
         const charGroup =
-          result.lastGroup ??
-          new CharacterGroup(node.tag, ScopeTracker.currentScope);
+          result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
 
         return result.appendText(charGroup.createChars(" "));
       }
       case "": {
         const charGroup =
-          result.lastGroup ??
-          new CharacterGroup(node.tag, ScopeTracker.currentScope);
+          result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
 
         for (let i = 0; i < node.content.length; i++) {
           const content = node.content[i]!;
@@ -219,8 +255,7 @@ export class MarkupFormatter {
               charGroup.createChars(this.parseStringContent(content))
             );
           } else {
-            const subText = this.parse(content);
-            result.concat(subText);
+            this.parse(content, result);
           }
         }
 
@@ -285,7 +320,7 @@ export class MarkupFormatter {
     node: MarkupNode
   ): (index: number) => string {
     if (node.tag === "ol") {
-      return (index) => `${index + 1}. `;
+      return (index) => `${index + 1}.`;
     }
 
     const type = this.getAttribute(node, "type") ?? "bullet";
@@ -297,13 +332,13 @@ export class MarkupFormatter {
         case "circle":
           return String.fromCharCode(0x25cb);
         case "square":
-          return String.fromCharCode(0x25a1);
+          return String.fromCharCode(0x25a0);
         default:
           throw new Error(`Invalid list type: ${type}`);
       }
     })();
 
-    return () => `${symbol} `;
+    return () => `${symbol}`;
   }
 
   private static createScope(node: MarkupNode): Scope {
@@ -324,9 +359,15 @@ export class MarkupFormatter {
       switch (name) {
         case "color":
           scope.color = as(value, "string");
+          if (scope.color === "none") {
+            scope.color = undefined;
+          }
           break;
         case "bg":
           scope.bg = as(value, "string");
+          if (scope.color === "none") {
+            scope.color = undefined;
+          }
           break;
         case "bold":
           scope.bold = value === true || value === "true";
