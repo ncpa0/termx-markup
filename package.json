@@ -20,7 +20,7 @@
     "prettier-plugin-jsdoc": "latest",
     "typescript": "latest"
   },
-  "version": "1.1.0",
+  "version": "1.1.1",
   "main": "./dist/legacy/index.js",
   "types": "./dist/types/index.d.ts",
   "exports": {
