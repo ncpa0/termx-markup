@@ -15,6 +15,7 @@
     "husky": "latest",
     "jest": "latest",
     "ncpa0cpl": "ncpa0cpl/git-hook-tasks",
+    "pr-changelog-gen": "^1.1.1",
     "prettier": "latest",
     "prettier-plugin-jsdoc": "latest",
     "typescript": "latest"
