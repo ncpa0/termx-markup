@@ -8,7 +8,8 @@ env:
   NPM_TOKEN: ""
 
 jobs:
-  build:
+  run-tests:
+    name: Run Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -25,5 +26,7 @@ jobs:
         run: ./.yarn/releases/yarn-1.22.19.cjs test:lint
       - name: Validating Prettier
         run: ./.yarn/releases/yarn-1.22.19.cjs test:prettier
+      - name: Building package
+        run: ./.yarn/releases/yarn-1.22.19.cjs build
       - name: Running Unit Tests
         run: ./.yarn/releases/yarn-1.22.19.cjs test:jest
