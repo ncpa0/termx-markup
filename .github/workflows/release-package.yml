@@ -12,6 +12,7 @@ env:
 
 jobs:
   build-and-publish:
+    name: Build and Publish
     permissions:
       packages: write
       contents: write
@@ -31,10 +32,10 @@ jobs:
         run: ./.yarn/releases/yarn-1.22.19.cjs --frozen-lockfile
       - name: Validating TypeScript
         run: ./.yarn/releases/yarn-1.22.19.cjs test:tsc
-      - name: Running Unit Tests
-        run: ./.yarn/releases/yarn-1.22.19.cjs test:jest
       - name: Building package
         run: ./.yarn/releases/yarn-1.22.19.cjs build
+      - name: Running Unit Tests
+        run: ./.yarn/releases/yarn-1.22.19.cjs test:jest
       - name: Publishing
         env:
           NPM_TOKEN: ${{ secrets.NPM_AUTOMATION_TOKEN }}
