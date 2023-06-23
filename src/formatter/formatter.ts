@@ -1,20 +1,12 @@
-import { TermxBgColor } from "../colors/termx-bg-color";
-import { TermxFontColor } from "../colors/termx-font-colors";
+import { TermxBgColors } from "../colors/termx-bg-color";
+import { TermxFontColors } from "../colors/termx-font-colors";
 import { desanitizeHtml } from "../html-tag";
 import type { MarkupNode } from "../markup-parser";
 import { parseMarkup } from "../markup-parser";
 import { leftPad } from "./left-pad";
 import type { Scope } from "./scope-tracker";
 import { ScopeTracker } from "./scope-tracker";
-
-const escape = "\u001b";
-const Bold = `${escape}[1m`;
-const Dimmed = `${escape}[2m`;
-const Italic = `${escape}[3m`;
-const Underscore = `${escape}[4m`;
-const Blink = `${escape}[5m`;
-const Inverted = `${escape}[7m`;
-const StrikeThrough = `${escape}[9m`;
+import { CharacterGroup, TextRenderer } from "./text-renderer/text";
 
 /**
  * Formats given Markup into a string that can be printed to the
@@ -46,44 +38,104 @@ export class MarkupFormatter {
   ): void;
   static defineColor(name: string, r: number, g: number, b: number): void;
   static defineColor(name: string, ...args: any[]) {
-    TermxBgColor.define(name, ...args);
-    TermxFontColor.define(name, ...args);
+    TermxBgColors.define(name, ...args);
+    TermxFontColors.define(name, ...args);
   }
 
-  static format(markup: string): string {
+  static format(
+    markup: string,
+    opt?: { keepTrailingNewLine?: boolean }
+  ): string {
     const node = parseMarkup(markup);
-    return (
-      TermxFontColor.get("unset") + desanitizeHtml(this.formatMarkup(node))
-    );
+    const text = this.parse(node, new TextRenderer());
+
+    if (opt?.keepTrailingNewLine !== true) {
+      text.removeTrailingNewLine();
+    }
+
+    return desanitizeHtml(text.render());
   }
 
-  private static formatMarkup(node: MarkupNode): string {
-    let result = "";
-
+  private static parse(node: MarkupNode, result: TextRenderer): TextRenderer {
     switch (node.tag) {
-      case "li":
-      case "pre":
+      case "pre": {
+        ScopeTracker.enterScope(this.createScope(node));
+
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+
+        for (let i = 0; i < node.content.length; i++) {
+          const content = node.content[i]!;
+
+          if (typeof content === "string") {
+            result.appendText(charGroup.createChars(content));
+          } else {
+            console.warn(
+              "The <pre> tag should only contain text. All other tags will be ignored."
+            );
+          }
+        }
+
+        ScopeTracker.exitScope();
+
+        return result;
+      }
+      case "li": {
+        ScopeTracker.enterScope(this.createScope(node));
+
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+
+        const contents = node.content
+          .map((c) => (typeof c === "string" ? this.parseStringContent(c) : c))
+          .filter((c) => (typeof c === "string" ? c.trim().length : true));
+
+        for (let i = 0; i < contents.length; i++) {
+          const isLast = i === contents.length - 1;
+          const content = contents[i]!;
+
+          if (typeof content === "string") {
+            result.appendText(
+              charGroup.createChars(this.parseStringContent(content))
+            );
+          } else {
+            if ((content.tag === "ol" || content.tag === "ul") && i !== 0) {
+              result.appendText(charGroup.createChars("\n"));
+            }
+
+            this.parse(content, result);
+
+            if ((content.tag === "ol" || content.tag === "ul") && !isLast) {
+              result.appendText(charGroup.createChars("\n"));
+            }
+          }
+        }
+
+        ScopeTracker.exitScope();
+
+        return result;
+      }
       case "line":
       case "span": {
         ScopeTracker.enterScope(this.createScope(node));
 
-        result +=
-          this.scopeToAnsi(ScopeTracker.currentScope) +
-          this.join(
-            node.content.map((content) =>
-              this.mapContents(content, node.tag === "pre")
-            )
-          );
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
-        ScopeTracker.exitScope();
+        for (let i = 0; i < node.content.length; i++) {
+          const content = node.content[i]!;
 
-        result += TermxFontColor.get("unset");
-
-        if (node.tag === "line") {
-          result += "\n";
+          if (typeof content === "string") {
+            result.appendText(
+              charGroup.createChars(this.parseStringContent(content))
+            );
+          } else {
+            this.parse(content, result);
+          }
         }
 
-        result += this.scopeToAnsi(ScopeTracker.currentScope);
+        if (node.tag === "line") {
+          result.appendText(charGroup.createChars("\n"));
+        }
+
+        ScopeTracker.exitScope();
 
         return result;
       }
@@ -92,85 +144,132 @@ export class MarkupFormatter {
         const prefix = this.getListElementPrefix(node);
         const padding = this.getListPadding();
 
+        const isNested = ScopeTracker.isImmediateChildOf("li");
+
         ScopeTracker.enterScope(this.createScope(node));
 
-        result +=
-          this.scopeToAnsi(ScopeTracker.currentScope) +
-          this.join(
-            node.content
-              .filter((c) => typeof c !== "string" || c.trim().length)
-              .map((content, i) => {
-                if (typeof content === "string" || content.tag !== "li") {
-                  throw new Error(
-                    `Invalid element inside <${node.tag}>. Each child of <${node.tag}> must be a <li> element.`
-                  );
-                }
+        const unstyledCharGroup = new CharacterGroup({
+          bg: ScopeTracker.currentScope.bg,
+          inverted: ScopeTracker.currentScope.inverted,
+        });
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
-                const { contentPad, firstLineOffset } = this.getContentPad(
-                  node,
-                  i + 1
-                );
+        if (result.length > 0 && result.lastCharacter?.value !== "\n") {
+          result.appendText(charGroup.createChars("\n"));
+        }
 
-                const r =
-                  prefix(i) +
-                  leftPad(this.mapContents(content), contentPad).substring(
-                    firstLineOffset
-                  );
+        const contentList = node.content.filter(
+          (c) => typeof c !== "string" || c.trim().length
+        );
 
-                return leftPad(r, padding) + "\n";
-              })
+        for (let i = 0; i < contentList.length; i++) {
+          const isLast = i === contentList.length - 1;
+          const content = contentList[i]!;
+
+          if (typeof content === "string" || content.tag !== "li") {
+            console.warn(
+              `Invalid element inside <${node.tag}>. Each child of <${node.tag}> must be a <li> element.`
+            );
+            continue;
+          }
+
+          const { contentPad, firstLineOffset } = this.getContentPad(
+            node,
+            i + 1
           );
 
-        ScopeTracker.exitScope();
+          const subText = this.parse(content, new TextRenderer());
 
-        result +=
-          TermxFontColor.get("unset") +
-          this.scopeToAnsi(ScopeTracker.currentScope);
+          subText.prependAllLines(
+            unstyledCharGroup.createChars(" ".repeat(contentPad))
+          );
+          subText.slice(firstLineOffset);
+          subText.prependText(unstyledCharGroup.createChars(" "));
+          subText.prependText(charGroup.createChars(prefix(i)));
+          subText.prependAllLines(
+            unstyledCharGroup.createChars(" ".repeat(padding))
+          );
+
+          if (!isLast || !isNested) {
+            subText.appendText(charGroup.createChars("\n"));
+          }
+
+          result.concat(subText);
+        }
+
+        ScopeTracker.exitScope();
 
         return result;
       }
       case "pad": {
         ScopeTracker.enterScope(this.createScope(node));
 
-        const paddingAttr = this.getAttribute(node, "size") ?? 0;
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
-        const content =
-          this.scopeToAnsi(ScopeTracker.currentScope) +
-          this.join(node.content.map((content) => this.mapContents(content)));
+        const paddingAttr = Number(this.getAttribute(node, "size") ?? 0);
 
-        result += leftPad(content, Number(paddingAttr));
+        const contentText = new TextRenderer();
+
+        for (let i = 0; i < node.content.length; i++) {
+          const content = node.content[i]!;
+
+          if (typeof content === "string") {
+            contentText.appendText(
+              charGroup.createChars(this.parseStringContent(content))
+            );
+          } else {
+            this.parse(content, contentText);
+          }
+        }
+
+        const padding = leftPad("", paddingAttr);
+        contentText.prependAllLines(charGroup.createChars(padding));
+
+        result.concat(contentText);
 
         ScopeTracker.exitScope();
-
-        result +=
-          TermxFontColor.get("unset") +
-          this.scopeToAnsi(ScopeTracker.currentScope);
 
         return result;
       }
       case "br": {
-        return result + "\n";
+        const charGroup =
+          result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
+
+        return result.appendText(charGroup.createChars("\n"));
       }
       case "s": {
-        return result + " ";
+        const charGroup =
+          result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
+
+        return result.appendText(charGroup.createChars(" "));
       }
       case "": {
-        result += this.join(
-          node.content.map((content) => this.mapContents(content))
-        );
+        const charGroup =
+          result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
+
+        for (let i = 0; i < node.content.length; i++) {
+          const content = node.content[i]!;
+
+          if (typeof content === "string") {
+            result.appendText(
+              charGroup.createChars(this.parseStringContent(content))
+            );
+          } else {
+            this.parse(content, result);
+          }
+        }
+
         return result;
       }
     }
 
-    throw new Error(`Invalid tag: <${node.tag}>`);
+    console.warn(`Invalid tag: ${node.tag}`);
+
+    return result;
   }
 
-  private static join(strings: string[]) {
-    let result = "";
-    for (let i = 0; i < strings.length; i++) {
-      result += strings[i];
-    }
-    return result;
+  private static parseStringContent(content: string) {
+    return content.replace(/\n/g, "").trim();
   }
 
   private static getAttribute(
@@ -182,17 +281,6 @@ export class MarkupFormatter {
         return as(value, "string");
       }
     }
-  }
-
-  private static mapContents(content: MarkupNode | string, pre?: boolean) {
-    if (typeof content === "string") {
-      if (pre) {
-        return content;
-      }
-      return content.replaceAll("\n", "").trim();
-    }
-
-    return this.formatMarkup(content);
   }
 
   private static getListPadding(): number {
@@ -232,7 +320,7 @@ export class MarkupFormatter {
     node: MarkupNode
   ): (index: number) => string {
     if (node.tag === "ol") {
-      return (index) => `${index + 1}. `;
+      return (index) => `${index + 1}.`;
     }
 
     const type = this.getAttribute(node, "type") ?? "bullet";
@@ -244,59 +332,13 @@ export class MarkupFormatter {
         case "circle":
           return String.fromCharCode(0x25cb);
         case "square":
-          return String.fromCharCode(0x25a1);
+          return String.fromCharCode(0x25a0);
         default:
           throw new Error(`Invalid list type: ${type}`);
       }
     })();
 
-    return () => `${symbol} `;
-  }
-
-  private static scopeToAnsi(scope: Scope): string {
-    let result = "";
-
-    if (scope.noInherit) {
-      result += TermxFontColor.get("unset");
-    }
-
-    if (scope.color) {
-      result += TermxFontColor.get(scope.color);
-    }
-
-    if (scope.bg) {
-      result += TermxBgColor.get(scope.bg);
-    }
-
-    if (scope.bold) {
-      result += Bold;
-    }
-
-    if (scope.dimmed) {
-      result += Dimmed;
-    }
-
-    if (scope.italic) {
-      result += Italic;
-    }
-
-    if (scope.underscore) {
-      result += Underscore;
-    }
-
-    if (scope.blink) {
-      result += Blink;
-    }
-
-    if (scope.inverted) {
-      result += Inverted;
-    }
-
-    if (scope.strikethrough) {
-      result += StrikeThrough;
-    }
-
-    return result;
+    return () => `${symbol}`;
   }
 
   private static createScope(node: MarkupNode): Scope {
@@ -317,9 +359,15 @@ export class MarkupFormatter {
       switch (name) {
         case "color":
           scope.color = as(value, "string");
+          if (scope.color === "none") {
+            scope.color = undefined;
+          }
           break;
         case "bg":
           scope.bg = as(value, "string");
+          if (scope.color === "none") {
+            scope.color = undefined;
+          }
           break;
         case "bold":
           scope.bold = value === true || value === "true";

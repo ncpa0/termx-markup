@@ -40,4 +40,10 @@ export class ScopeTracker {
       callback(this.scopeStack[i]!);
     }
   }
+
+  static isImmediateChildOf(...tags: string[]): boolean {
+    const parent = this.scopeStack[this.scopeStack.length - 1];
+
+    return tags.includes(parent?.tag ?? "-");
+  }
 }
