@@ -33,15 +33,17 @@ const predefinedBgColors = Object.values(
 
 /** @param {string} value */
 const formatExpectedReceived = (value) =>
-  '"' +
+  "" +
   value
+
     .split("\n")
     .map((line, i) => {
+      line = line.replace(/ /g, Dimmed + String.fromCharCode(183) + unset);
       if (i === 0) return line;
-      return " ".repeat(11) + line;
+      return " ".repeat(10) + line;
     })
     .join("\n") +
-  '"';
+  "";
 
 const customMatchers = {
   /**
@@ -63,11 +65,12 @@ const customMatchers = {
     const displayReceived = formatExpectedReceived(stripped);
 
     return {
-      message: () => `Received string does not match the expected string.
+      message:
+        () => `${Bold}Received string does not match the expected string.${unset}
   
-  Expected: ${displayExpected}
+${green + Bold}Expected:${unset} ${displayExpected}
   
-  Received: ${displayReceived}`,
+${red + Bold}Received:${unset} ${displayReceived}`,
       pass: false,
     };
   },
@@ -81,11 +84,12 @@ const customMatchers = {
 
     if (strStartIndex === -1) {
       return {
-        message: () => `Received string does not contain the expected substring.
+        message:
+          () => `${Bold}Received string does not contain the expected substring.${unset}
   
-  Expected: ${formatExpectedReceived(expected)}
+${green + Bold}Expected:${unset} ${formatExpectedReceived(expected)}
           
-  Received: ${formatExpectedReceived(received)}`,
+${red + Bold}Received:${unset} ${formatExpectedReceived(received)}`,
         pass: false,
       };
     }
@@ -264,7 +268,10 @@ jest.spyOn(MarkupFormatter, "format").mockImplementation((...args) => {
   if (process.env["DISPLAY_RESULTS"] === "true") {
     process.stdout.write(
       `\u001b[1m${expect.getState().currentTestName}:\u001b[0m\n\n` +
-        formatted +
+        formatted
+          .split("\n")
+          .map((line) => line.replace(/ /g, String.fromCharCode(183)))
+          .join("\n") +
         "\n\n"
     );
   }
