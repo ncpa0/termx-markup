@@ -1,5 +1,6 @@
-import { MarkupFormatter } from "../../src/formatter/formatter";
-import { html } from "../../src/html-tag";
+import { MarkupFormatter, Settings, html } from "../../src/index";
+
+Settings.enableStrictMode(true);
 
 describe("MarkupFormatter", () => {
   describe("should correctly format the xml", () => {

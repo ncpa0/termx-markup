@@ -9,7 +9,7 @@ async function main() {
       srcDir: p("src"),
       outDir: p("dist"),
       tsConfig: p("tsconfig.json"),
-      target: "ESNext",
+      target: "ES2020",
       formats: ["cjs", "esm", "legacy"],
       declarations: true,
     });

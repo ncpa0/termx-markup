@@ -3,6 +3,8 @@ import { TermxFontColors } from "../colors/termx-font-colors";
 import { desanitizeHtml } from "../html-tag";
 import type { MarkupNode } from "../markup-parser";
 import { parseMarkup } from "../markup-parser";
+import type { Settings } from "../settings";
+import { GlobalSettings } from "../settings";
 import { leftPad } from "./left-pad";
 import type { Scope } from "./scope-tracker";
 import { ScopeTracker } from "./scope-tracker";
@@ -27,6 +29,12 @@ declare global {
  *   ```
  */
 export class MarkupFormatter {
+  private static _instance: MarkupFormatter;
+
+  static {
+    MarkupFormatter._instance = new MarkupFormatter();
+  }
+
   /**
    * Defines a new named color that can be used in the markup for
    * font and background colors.
@@ -48,26 +56,37 @@ export class MarkupFormatter {
     TermxFontColors.define(name, ...args);
   }
 
-  static format(
-    markup: string,
-    opt?: { keepTrailingNewLine?: boolean }
-  ): string {
-    const node = parseMarkup(markup);
+  static format(markup: string | MarkupNode): string {
+    return MarkupFormatter._instance.format(markup);
+  }
+
+  constructor(private settings: Settings = GlobalSettings) {}
+
+  format(markup: string | MarkupNode): string {
+    const node = typeof markup === "string" ? parseMarkup(markup) : markup;
     const text = this.parse(node, new TextRenderer());
 
-    if (opt?.keepTrailingNewLine !== true) {
-      text.removeTrailingNewLine();
-    }
+    text.removeTrailingNewLine();
 
     return desanitizeHtml(text.render());
   }
 
-  private static normalizeText(node: MarkupNode) {
+  private handleError(message: string) {
+    if (this.settings.__.strictMode) {
+      throw new Error(message);
+    }
+
+    if (this.settings.__.warnings) {
+      console.warn(message);
+    }
+  }
+
+  private normalizeText(node: MarkupNode) {
     if (node.tag === "pre") {
       return;
     }
 
-    const join = ScopeTracker.currentScope.join;
+    const join = ScopeTracker.currentScope.attributes.join;
 
     if (join === "none") {
       for (let i = 0; i < node.content.length; i++) {
@@ -138,13 +157,15 @@ export class MarkupFormatter {
     }
   }
 
-  private static parse(node: MarkupNode, result: TextRenderer): TextRenderer {
+  private parse(node: MarkupNode, result: TextRenderer): TextRenderer {
     switch (node.tag) {
       case "pre": {
         ScopeTracker.enterScope(this.createScope(node));
         this.normalizeText(node);
 
-        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+        const charGroup = new CharacterGroup(
+          ScopeTracker.currentScope.attributes
+        );
 
         for (let i = 0; i < node.content.length; i++) {
           const content = node.content[i]!;
@@ -152,7 +173,7 @@ export class MarkupFormatter {
           if (typeof content === "string") {
             result.appendText(charGroup.createChars(content));
           } else {
-            console.warn(
+            this.handleError(
               "The <pre> tag should only contain text. All other tags will be ignored."
             );
           }
@@ -166,7 +187,9 @@ export class MarkupFormatter {
         ScopeTracker.enterScope(this.createScope(node));
         this.normalizeText(node);
 
-        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+        const charGroup = new CharacterGroup(
+          ScopeTracker.currentScope.attributes
+        );
 
         const contents = node.content.filter((c) =>
           typeof c === "string" ? c.length : true
@@ -200,7 +223,9 @@ export class MarkupFormatter {
         ScopeTracker.enterScope(this.createScope(node));
         this.normalizeText(node);
 
-        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+        const charGroup = new CharacterGroup(
+          ScopeTracker.currentScope.attributes
+        );
 
         for (let i = 0; i < node.content.length; i++) {
           const content = node.content[i]!;
@@ -231,10 +256,12 @@ export class MarkupFormatter {
         this.normalizeText(node);
 
         const unstyledCharGroup = new CharacterGroup({
-          bg: ScopeTracker.currentScope.bg,
-          inverted: ScopeTracker.currentScope.inverted,
+          bg: ScopeTracker.currentScope.attributes.bg,
+          inverted: ScopeTracker.currentScope.attributes.inverted,
         });
-        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+        const charGroup = new CharacterGroup(
+          ScopeTracker.currentScope.attributes
+        );
 
         if (result.length > 0 && result.lastCharacter?.value !== "\n") {
           result.appendText(charGroup.createChars("\n"));
@@ -249,7 +276,7 @@ export class MarkupFormatter {
           const content = contentList[i]!;
 
           if (typeof content === "string" || content.tag !== "li") {
-            console.warn(
+            this.handleError(
               `Invalid element inside <${node.tag}>. Each child of <${node.tag}> must be a <li> element.`
             );
             continue;
@@ -287,7 +314,9 @@ export class MarkupFormatter {
         ScopeTracker.enterScope(this.createScope(node));
         this.normalizeText(node);
 
-        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+        const charGroup = new CharacterGroup(
+          ScopeTracker.currentScope.attributes
+        );
 
         const paddingAttr = Number(this.getAttribute(node, "size") ?? 0);
 
@@ -314,7 +343,8 @@ export class MarkupFormatter {
       }
       case "br": {
         const charGroup =
-          result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
+          result.lastGroup ??
+          new CharacterGroup(ScopeTracker.currentScope.attributes);
 
         return result.appendText(charGroup.createChars("\n"));
       }
@@ -322,7 +352,9 @@ export class MarkupFormatter {
         ScopeTracker.enterScope(this.createScope(node));
         this.normalizeText(node);
 
-        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+        const charGroup = new CharacterGroup(
+          ScopeTracker.currentScope.attributes
+        );
 
         result.appendText(charGroup.createChars(" "));
 
@@ -334,7 +366,8 @@ export class MarkupFormatter {
         this.normalizeText(node);
 
         const charGroup =
-          result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
+          result.lastGroup ??
+          new CharacterGroup(ScopeTracker.currentScope.attributes);
 
         for (let i = 0; i < node.content.length; i++) {
           const content = node.content[i]!;
@@ -350,23 +383,20 @@ export class MarkupFormatter {
       }
     }
 
-    console.warn(`Invalid tag: ${node.tag}`);
+    this.handleError(`Invalid tag: ${node.tag}`);
 
     return result;
   }
 
-  private static getAttribute(
-    node: MarkupNode,
-    name: string
-  ): string | undefined {
+  private getAttribute(node: MarkupNode, name: string): string | undefined {
     for (const [key, value] of node.attributes) {
       if (key === name) {
-        return as(value, "string");
+        return this.parseAttribute(key, value, "string");
       }
     }
   }
 
-  private static getListPadding(): number {
+  private getListPadding(): number {
     let p = 0;
 
     ScopeTracker.traverseUp((scope) => {
@@ -382,7 +412,7 @@ export class MarkupFormatter {
     return (p - 1) * 2;
   }
 
-  private static getContentPad(node: MarkupNode, line: number) {
+  private getContentPad(node: MarkupNode, line: number) {
     if (node.tag === "ul") {
       return {
         contentPad: 2,
@@ -399,9 +429,7 @@ export class MarkupFormatter {
     };
   }
 
-  private static getListElementPrefix(
-    node: MarkupNode
-  ): (index: number) => string {
+  private getListElementPrefix(node: MarkupNode): (index: number) => string {
     if (node.tag === "ol") {
       return (index) => `${index + 1}.`;
     }
@@ -424,69 +452,140 @@ export class MarkupFormatter {
     return () => `${symbol}`;
   }
 
-  private static createScope(node: MarkupNode): Scope {
+  private createScope(node: MarkupNode): Scope {
     const noInherit = node.attributes.some(
       ([key, value]) =>
         key === "no-inherit" && (value === true || value === "true")
     );
 
     const scope: Scope = noInherit
-      ? { noInherit: true }
-      : { ...ScopeTracker.currentScope, noInherit: false };
+      ? { attributes: { noInherit: true } }
+      : {
+          attributes: {
+            ...ScopeTracker.currentScope.attributes,
+            noInherit: false,
+          },
+        };
 
     if (node.tag) {
       scope.tag = node.tag;
     }
 
+    const attributes = scope.attributes;
+
     for (const [name, value] of node.attributes) {
       switch (name) {
         case "color":
-          scope.color = as(value, "string");
-          if (scope.color === "none") {
-            scope.color = undefined;
+          attributes.color = this.parseAttribute("color", value, "string");
+          if (attributes.color === "none") {
+            attributes.color = undefined;
           }
-          break;
+          continue;
         case "bg":
-          scope.bg = as(value, "string");
-          if (scope.color === "none") {
-            scope.color = undefined;
+          attributes.bg = this.parseAttribute("bg", value, "string");
+          if (attributes.color === "none") {
+            attributes.color = undefined;
           }
-          break;
+          continue;
         case "bold":
-          scope.bold = value === true || value === "true";
-          break;
+          attributes.bold = this.parseAttribute("bold", value, "boolean");
+          continue;
         case "dim":
-          scope.dimmed = value === true || value === "true";
-          break;
+          attributes.dimmed = this.parseAttribute("dim", value, "boolean");
+          continue;
         case "italic":
-          scope.italic = value === true || value === "true";
-          break;
+          attributes.italic = this.parseAttribute("italic", value, "boolean");
+          continue;
         case "underscore":
-          scope.underscore = value === true || value === "true";
-          break;
+          attributes.underscore = this.parseAttribute(
+            "underscore",
+            value,
+            "boolean"
+          );
+          continue;
         case "blink":
-          scope.blink = value === true || value === "true";
-          break;
+          attributes.blink = this.parseAttribute("blink", value, "boolean");
+          continue;
         case "invert":
-          scope.inverted = value === true || value === "true";
-          break;
+          attributes.inverted = this.parseAttribute("invert", value, "boolean");
+          continue;
         case "strike":
-          scope.strikethrough = value === true || value === "true";
-          break;
+          attributes.strikethrough = this.parseAttribute(
+            "strike",
+            value,
+            "boolean"
+          );
+          continue;
         case "join":
-          scope.join = value === "space" ? "space" : "none";
+          attributes.join = this.parseAttribute(
+            "join",
+            value,
+            "string",
+            "space",
+            "none"
+          );
+          continue;
+        case "no-inherit":
+          continue;
+        // tag-specific attributes
+        case "size": // pad
+        case "type": // ul
+          continue;
       }
+
+      this.handleError(`Unknown attribute: [${name}]`);
     }
 
     return scope;
   }
-}
 
-function as(value: string | boolean, as: "string"): string;
-function as(value: string | boolean, as: "boolean"): boolean;
-function as(value: string | boolean, as: "string" | "boolean") {
-  if (typeof value === as) {
-    return value;
+  private parseAttribute(
+    name: string,
+    value: any,
+    type: "string"
+  ): string | undefined;
+  private parseAttribute(
+    name: string,
+    value: any,
+    type: "boolean"
+  ): boolean | undefined;
+  private parseAttribute<L extends string[]>(
+    name: string,
+    value: any,
+    type: "string",
+    ...literal: L
+  ): L[number];
+  private parseAttribute(
+    name: string,
+    value: any,
+    type: "string" | "boolean",
+    ...literal: string[]
+  ) {
+    switch (type) {
+      case "string":
+        if (typeof value === "string") {
+          if (literal.length ? literal.includes(value) : true) {
+            return value;
+          }
+        }
+        break;
+      case "boolean":
+        if (typeof value === "boolean") {
+          return value;
+        }
+        if (value === "true" || value === "1") {
+          return true;
+        }
+        if (value === "false" || value === "0") {
+          return false;
+        }
+        break;
+    }
+
+    this.handleError(
+      `Invalid attribute: value '${value}' cannot be assigned to [${name}].`
+    );
+
+    return undefined;
   }
-  throw new Error(`Invalid attribute type: ${typeof value} (expected ${as})`);
 }

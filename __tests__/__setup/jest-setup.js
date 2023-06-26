@@ -38,9 +38,11 @@ const formatExpectedReceived = (value) =>
 
     .split("\n")
     .map((line, i) => {
+      const eolChar = Dimmed + "\\n" + unset;
+
       line = line.replace(/ /g, Dimmed + String.fromCharCode(183) + unset);
-      if (i === 0) return line;
-      return " ".repeat(10) + line;
+      if (i === 0) return line + eolChar;
+      return " ".repeat(10) + line + eolChar;
     })
     .join("\n") +
   "";

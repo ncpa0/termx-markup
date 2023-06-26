@@ -1,5 +1,4 @@
-export type Scope = {
-  tag?: string;
+export type Attributes = {
   color?: string;
   bg?: string;
   bold?: boolean;
@@ -13,7 +12,12 @@ export type Scope = {
   noInherit?: boolean;
 };
 
-const DEFAULT_SCOPE: Scope = { tag: "" };
+export type Scope = {
+  tag?: string;
+  attributes: Attributes;
+};
+
+export const DEFAULT_SCOPE: Scope = { tag: "", attributes: {} };
 
 export class ScopeTracker {
   private static scopeStack: Scope[] = [DEFAULT_SCOPE];
@@ -31,7 +35,8 @@ export class ScopeTracker {
 
   static exitScope() {
     this.scopeStack.pop();
-    this._currentScope = this.scopeStack[this.scopeStack.length - 1] ?? {};
+    this._currentScope =
+      this.scopeStack[this.scopeStack.length - 1] ?? DEFAULT_SCOPE;
   }
 
   static traverseUp(callback: (scope: Readonly<Scope>) => void) {
