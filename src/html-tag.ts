@@ -76,6 +76,7 @@ export function desanitizeHtml(html: string): string {
 
 class RawHtml {
   name = "RawHtml";
+
   constructor(public html: string) {}
 
   toString(): string {

@@ -8,13 +8,76 @@ import { GlobalSettings } from "../settings";
 import { leftPad } from "./left-pad";
 import type { Scope } from "./scope-tracker";
 import { ScopeTracker } from "./scope-tracker";
-import { CharacterGroup, TextRenderer } from "./text-renderer/text";
+import { Character, CharacterGroup, TextRenderer } from "./text-renderer/text";
 
 declare global {
   interface Array<T> {
     includes(searchElement: any, fromIndex?: number): boolean;
   }
+
+  interface ReadonlyArray<T> {
+    includes(searchElement: any, fromIndex?: number): boolean;
+  }
 }
+
+const FRAME_CHARS = {
+  left: "│",
+  right: "│",
+  top: "─",
+  bottom: "─",
+  topLeft: "┌",
+  topRight: "┐",
+  bottomLeft: "└",
+  bottomRight: "┘",
+};
+const BR_NODE: MarkupNode = Object.freeze({
+  tag: "br",
+  textNode: false,
+  attributes: [],
+  content: [],
+});
+const INLINE_NODE_TYPES = Object.freeze([
+  "span",
+  "pre",
+  "br",
+  "s",
+  "li",
+] as const);
+const BLOCK_NODE_TYPES = Object.freeze([
+  "line",
+  "frame",
+  "pad",
+  "ul",
+  "ol",
+] as const);
+
+const getNodeType = (node?: string | MarkupNode): string | undefined => {
+  if (typeof node === "string") {
+    return "";
+  }
+  return node?.tag;
+};
+
+type DisplayType = "inline" | "block";
+const getNodeDisplayType = (
+  node?: string | MarkupNode
+): DisplayType | undefined => {
+  if (node) {
+    if (typeof node === "string") {
+      return "inline";
+    }
+
+    if (INLINE_NODE_TYPES.includes(node.tag)) {
+      return "inline";
+    }
+
+    if (BLOCK_NODE_TYPES.includes(node.tag)) {
+      return "block";
+    }
+  }
+
+  return undefined;
+};
 
 /**
  * Formats given Markup into a string that can be printed to the
@@ -81,77 +144,75 @@ export class MarkupFormatter {
     }
   }
 
-  private normalizeText(node: MarkupNode) {
-    if (node.tag === "pre") {
-      return;
-    }
-
-    const join = ScopeTracker.currentScope.attributes.join;
-
-    if (join === "none") {
+  private normalizeNode(node: MarkupNode) {
+    if (node.tag !== "pre") {
       for (let i = 0; i < node.content.length; i++) {
         const content = node.content[i]!;
+
         if (typeof content === "string") {
-          node.content[i] = content.replace(/\s*\n\s*/g, " ").trim();
+          const singleLined = content.replaceAll("\n", " ");
+          let trimmed = singleLined.trim();
+          const prevNodeDisplayType = getNodeDisplayType(node.content[i - 1]);
+          const nextNodeDisplayType = getNodeDisplayType(node.content[i + 1]);
+          const prevTag = getNodeType(node.content[i - 1]);
+          const nextTag = getNodeType(node.content[i + 1]);
+
+          const isStartOfLine =
+            prevNodeDisplayType === "block" || prevTag === "br" || i === 0;
+          const isEndOfLine =
+            nextNodeDisplayType === "block" ||
+            nextTag === "br" ||
+            i === node.content.length - 1;
+
+          if (trimmed.length === 0) {
+            const shouldKeepWhitespace = !isStartOfLine && !isEndOfLine;
+
+            if (shouldKeepWhitespace) {
+              node.content[i] = " ";
+            } else {
+              // Remove the empty node
+              node.content = node.content
+                .slice(0, i)
+                .concat(node.content.slice(i + 1));
+              i--;
+            }
+          } else {
+            if (
+              !isStartOfLine &&
+              singleLined[0] === " " &&
+              prevNodeDisplayType === "inline"
+            ) {
+              trimmed = " " + trimmed;
+            }
+
+            if (!isEndOfLine && singleLined[singleLined.length - 1] === " ") {
+              node.content[i] = trimmed + " ";
+            } else {
+              node.content[i] = trimmed;
+            }
+          }
         }
       }
-      return;
     }
 
-    const doesLineStartsWithWhitespace = (index: number) => {
-      const line = node.content[index]!;
-      if (typeof line !== "string") {
-        return false;
-      }
-      return line[0] === " " || line[0] === "\n";
-    };
-
-    const lastIndex = node.content.length - 1;
     for (let i = 0; i < node.content.length; i++) {
-      const content = node.content[i]!;
+      const subNode = node.content[i]!;
+      const subNodeDisplayType = getNodeDisplayType(subNode);
+      const nextNodeDisplayType = getNodeDisplayType(node.content[i + 1]);
 
-      if (typeof content === "string") {
-        const singleLined = content.replace(/\s*\n\s*/g, " ");
-        let trimmed = singleLined.trim();
-        const prevTag =
-          ((node.content[i - 1] as MarkupNode)?.tag as string) || undefined;
-        const nextTag = (node.content[i + 1] as MarkupNode)?.tag;
+      if (subNodeDisplayType === "block") {
+        if (i !== 0 && getNodeType(node.content[i - 1]) !== "br") {
+          node.content = node.content
+            .slice(0, i)
+            .concat(BR_NODE, node.content.slice(i));
+          i++;
+        }
 
-        const shouldSkipLeft = ["br", "s", "ul", "ol", "line"].includes(
-          prevTag
-        );
-        const shouldSkipRight = ["br", "s", "ul", "ol"].includes(nextTag);
-
-        if (trimmed.length === 0) {
-          if (
-            !shouldSkipLeft &&
-            !shouldSkipRight &&
-            i !== 0 &&
-            i !== lastIndex
-          ) {
-            node.content[i] = " ";
-          } else {
-            node.content[i] = "";
-          }
-        } else {
-          if (
-            !shouldSkipLeft &&
-            typeof node.content[i - 1] === "object" &&
-            singleLined[0] === " "
-          ) {
-            trimmed = " " + trimmed;
-          }
-
-          if (
-            !shouldSkipRight &&
-            i !== lastIndex &&
-            (singleLined[singleLined.length - 1] === " " ||
-              doesLineStartsWithWhitespace(i + 1))
-          ) {
-            node.content[i] = trimmed + " ";
-          } else {
-            node.content[i] = trimmed;
-          }
+        if (nextNodeDisplayType === "inline") {
+          node.content = node.content
+            .slice(0, i + 1)
+            .concat(BR_NODE, node.content.slice(i + 1));
+          i++;
         }
       }
     }
@@ -161,7 +222,7 @@ export class MarkupFormatter {
     switch (node.tag) {
       case "pre": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeText(node);
+        this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -183,45 +244,10 @@ export class MarkupFormatter {
 
         return result;
       }
-      case "li": {
-        ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeText(node);
-
-        const charGroup = new CharacterGroup(
-          ScopeTracker.currentScope.attributes
-        );
-
-        const contents = node.content.filter((c) =>
-          typeof c === "string" ? c.length : true
-        );
-
-        for (let i = 0; i < contents.length; i++) {
-          const isLast = i === contents.length - 1;
-          const content = contents[i]!;
-
-          if (typeof content === "string") {
-            result.appendText(charGroup.createChars(content));
-          } else {
-            if ((content.tag === "ol" || content.tag === "ul") && i !== 0) {
-              result.appendText(charGroup.createChars("\n"));
-            }
-
-            this.parse(content, result);
-
-            if ((content.tag === "ol" || content.tag === "ul") && !isLast) {
-              result.appendText(charGroup.createChars("\n"));
-            }
-          }
-        }
-
-        ScopeTracker.exitScope();
-
-        return result;
-      }
       case "line":
       case "span": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeText(node);
+        this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -237,10 +263,6 @@ export class MarkupFormatter {
           }
         }
 
-        if (node.tag === "line") {
-          result.appendText(charGroup.createChars("\n"));
-        }
-
         ScopeTracker.exitScope();
 
         return result;
@@ -250,10 +272,8 @@ export class MarkupFormatter {
         const prefix = this.getListElementPrefix(node);
         const padding = this.getListPadding();
 
-        const isNested = ScopeTracker.isImmediateChildOf("li");
-
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeText(node);
+        this.normalizeNode(node);
 
         const unstyledCharGroup = new CharacterGroup({
           bg: ScopeTracker.currentScope.attributes.bg,
@@ -299,7 +319,7 @@ export class MarkupFormatter {
             unstyledCharGroup.createChars(" ".repeat(padding))
           );
 
-          if (!isLast || !isNested) {
+          if (!isLast) {
             subText.appendText(charGroup.createChars("\n"));
           }
 
@@ -310,9 +330,35 @@ export class MarkupFormatter {
 
         return result;
       }
+      case "li": {
+        ScopeTracker.enterScope(this.createScope(node));
+        this.normalizeNode(node);
+
+        const charGroup = new CharacterGroup(
+          ScopeTracker.currentScope.attributes
+        );
+
+        const contents = node.content.filter((c) =>
+          typeof c === "string" ? c.length : true
+        );
+
+        for (let i = 0; i < contents.length; i++) {
+          const content = contents[i]!;
+
+          if (typeof content === "string") {
+            result.appendText(charGroup.createChars(content));
+          } else {
+            this.parse(content, result);
+          }
+        }
+
+        ScopeTracker.exitScope();
+
+        return result;
+      }
       case "pad": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeText(node);
+        this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -341,6 +387,116 @@ export class MarkupFormatter {
 
         return result;
       }
+      case "frame": {
+        ScopeTracker.enterScope(this.createScope(node));
+        this.normalizeNode(node);
+
+        const charGroup = new CharacterGroup(
+          ScopeTracker.currentScope.attributes
+        );
+
+        const padding = Number(this.getAttribute(node, "padding") ?? 0);
+        const paddingVertical = Number(
+          this.getAttribute(node, "padding-vertical") ?? padding
+        );
+        const paddingHorizontal = Number(
+          this.getAttribute(node, "padding-horizontal") ?? padding
+        );
+        const paddingTop = Number(
+          this.getAttribute(node, "padding-top") ?? paddingVertical
+        );
+        const paddingBottom = Number(
+          this.getAttribute(node, "padding-bottom") ?? paddingVertical
+        );
+        const paddingLeft = Number(
+          this.getAttribute(node, "padding-left") ?? paddingHorizontal
+        );
+        const paddingRight = Number(
+          this.getAttribute(node, "padding-right") ?? paddingHorizontal
+        );
+
+        const contentText = new TextRenderer();
+
+        for (let i = 0; i < node.content.length; i++) {
+          const content = node.content[i]!;
+
+          if (typeof content === "string") {
+            contentText.appendText(charGroup.createChars(content));
+          } else {
+            this.parse(content, contentText);
+          }
+        }
+
+        const frameInnerWidth =
+          contentText.longestLineLength + paddingLeft + paddingRight;
+
+        const top =
+          FRAME_CHARS.topLeft +
+          FRAME_CHARS.top.repeat(frameInnerWidth) +
+          FRAME_CHARS.topRight +
+          "\n";
+        const bottom =
+          "\n" +
+          FRAME_CHARS.bottomLeft +
+          FRAME_CHARS.bottom.repeat(frameInnerWidth) +
+          FRAME_CHARS.bottomRight;
+
+        contentText.mapLines((line, endline) => {
+          const newline = [
+            ...charGroup.createChars(
+              FRAME_CHARS.left + " ".repeat(paddingLeft)
+            ),
+            ...line,
+            ...charGroup.createChars(
+              " ".repeat(
+                Math.max(
+                  paddingRight,
+                  frameInnerWidth - line.length - paddingLeft
+                )
+              ) + FRAME_CHARS.right
+            ),
+          ];
+
+          if (endline) {
+            newline.push(new Character(charGroup, "\n"));
+          }
+
+          return newline;
+        });
+
+        const topVerticalPaddingLine = charGroup.createChars(
+          FRAME_CHARS.left +
+            " ".repeat(frameInnerWidth) +
+            FRAME_CHARS.right +
+            "\n"
+        );
+        const bottomVerticalPaddingLine = charGroup.createChars(
+          "\n" +
+            FRAME_CHARS.left +
+            " ".repeat(frameInnerWidth) +
+            FRAME_CHARS.right
+        );
+
+        for (let i = 0; i < paddingTop; i++) {
+          contentText.prependText(topVerticalPaddingLine);
+        }
+        for (let i = 0; i < paddingBottom; i++) {
+          contentText.appendText(bottomVerticalPaddingLine);
+        }
+
+        contentText.prependText(charGroup.createChars(top));
+        contentText.appendText(charGroup.createChars(bottom));
+
+        if (result.lastCharacter && result.lastCharacter.value !== "\n") {
+          contentText.prependText(charGroup.createChars("\n"));
+        }
+
+        result.concat(contentText);
+
+        ScopeTracker.exitScope();
+
+        return result;
+      }
       case "br": {
         const charGroup =
           result.lastGroup ??
@@ -350,7 +506,7 @@ export class MarkupFormatter {
       }
       case "s": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeText(node);
+        this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -363,7 +519,7 @@ export class MarkupFormatter {
         return result;
       }
       case "": {
-        this.normalizeText(node);
+        this.normalizeNode(node);
 
         const charGroup =
           result.lastGroup ??
@@ -429,25 +585,25 @@ export class MarkupFormatter {
     };
   }
 
+  private getUnorderedListSymbol(type: string) {
+    switch (type) {
+      case "bullet":
+        return String.fromCharCode(0x25cf);
+      case "circle":
+        return String.fromCharCode(0x25cb);
+      case "square":
+        return String.fromCharCode(0x25a0);
+    }
+    throw new Error(`Invalid list type: ${type}`);
+  }
+
   private getListElementPrefix(node: MarkupNode): (index: number) => string {
     if (node.tag === "ol") {
       return (index) => `${index + 1}.`;
     }
 
     const type = this.getAttribute(node, "type") ?? "bullet";
-
-    const symbol = (() => {
-      switch (type) {
-        case "bullet":
-          return String.fromCharCode(0x25cf);
-        case "circle":
-          return String.fromCharCode(0x25cb);
-        case "square":
-          return String.fromCharCode(0x25a0);
-        default:
-          throw new Error(`Invalid list type: ${type}`);
-      }
-    })();
+    const symbol = this.getUnorderedListSymbol(type);
 
     return () => `${symbol}`;
   }
@@ -530,6 +686,13 @@ export class MarkupFormatter {
         // tag-specific attributes
         case "size": // pad
         case "type": // ul
+        case "padding":
+        case "padding-vertical":
+        case "padding-horizontal":
+        case "padding-top":
+        case "padding-bottom":
+        case "padding-left":
+        case "padding-right":
           continue;
       }
 

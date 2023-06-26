@@ -4,7 +4,7 @@ Settings.enableStrictMode(true);
 
 describe("MarkupFormatter", () => {
   describe("should correctly format the xml", () => {
-    it("scenario 1", () => {
+    it("scenario 01", () => {
       const xml = html`
         <line>Hello World</line>
         <line bold color="red">
@@ -48,7 +48,7 @@ describe("MarkupFormatter", () => {
       expect(formatted).toMatchSnapshot();
     });
 
-    it("scenario 2", () => {
+    it("scenario 02", () => {
       const xml = html`
         <span>
           <span color="red"> Red </span>
@@ -76,7 +76,7 @@ describe("MarkupFormatter", () => {
       expect(formatted).toMatchSnapshot();
     });
 
-    it("scenario 3", () => {
+    it("scenario 03", () => {
       const xml = html`
         <span>
           <span color="red"> Red </span><br />
@@ -103,7 +103,7 @@ describe("MarkupFormatter", () => {
       expect(formatted).toMatchSnapshot();
     });
 
-    it("scenario 4", () => {
+    it("scenario 04", () => {
       const xml = html`
         <span bold italic underscore>
           <pre color="red"> Red </pre>
@@ -129,20 +129,20 @@ describe("MarkupFormatter", () => {
       expect(formatted).toMatchSnapshot();
     });
 
-    it("scenario 5", () => {
+    it("scenario 05", () => {
       const xml = html`
         <span join="none" underscore blink bold color="yellow">
-          <pre>Lorem </pre>
+          <pre>Lorem</pre>
           <span bold color="blue">
-            <pre>ipsum </pre>
+            <pre>ipsum</pre>
             <span dim color="green">
-              <pre>dolor </pre>
+              <pre>dolor</pre>
               <span invert>
-                <pre>sit </pre>
+                <pre>sit</pre>
               </span>
-              <pre>amet </pre>
+              <pre>amet</pre>
             </span>
-            <pre>consectetur </pre>
+            <pre>consectetur</pre>
           </span>
           <pre>adipiscing</pre>
         </span>
@@ -153,44 +153,44 @@ describe("MarkupFormatter", () => {
       expect(formatted).toMatchAnsiString(
         "Lorem ipsum dolor sit amet consectetur adipiscing"
       );
-      expect(formatted).toContainAnsiStringWithStyles("Lorem ", {
+      expect(formatted).toContainAnsiStringWithStyles("Lorem", {
         color: "yellow",
         bold: true,
         blink: true,
       });
-      expect(formatted).toContainAnsiStringWithStyles("ipsum ", {
+      expect(formatted).toContainAnsiStringWithStyles("ipsum", {
         color: "blue",
         bold: true,
         blink: true,
       });
-      expect(formatted).toContainAnsiStringWithStyles("dolor ", {
+      expect(formatted).toContainAnsiStringWithStyles("dolor", {
         color: "green",
         bold: true,
         blink: true,
         dimmed: true,
       });
-      expect(formatted).toContainAnsiStringWithStyles("sit ", {
+      expect(formatted).toContainAnsiStringWithStyles("sit", {
         color: "green",
         bold: true,
         blink: true,
         dimmed: true,
         inverted: true,
       });
-      expect(formatted).toContainAnsiStringWithStyles("amet", {
+      expect(formatted).toContainAnsiStringWithStyles(" amet", {
         color: "green",
         bold: true,
         blink: true,
         dimmed: true,
         inverted: false,
       });
-      expect(formatted).toContainAnsiStringWithStyles("consectetur ", {
+      expect(formatted).toContainAnsiStringWithStyles(" consectetur", {
         color: "blue",
         bold: true,
         blink: true,
         dimmed: false,
         inverted: false,
       });
-      expect(formatted).toContainAnsiStringWithStyles("adipiscing", {
+      expect(formatted).toContainAnsiStringWithStyles(" adipiscing", {
         color: "yellow",
         bold: true,
         blink: true,
@@ -200,7 +200,7 @@ describe("MarkupFormatter", () => {
       expect(formatted).toMatchSnapshot();
     });
 
-    it("scenario 6", () => {
+    it("scenario 06", () => {
       // prettier-ignore
       const xml = html`
         <span color="#f5aa42">
@@ -227,7 +227,7 @@ describe("MarkupFormatter", () => {
       expect(formatted).toMatchSnapshot();
     });
 
-    it("scenario 7", () => {
+    it("scenario 07", () => {
       const xml = html`
         <span underscore color="yellow">
           <pre>Lorem</pre>
@@ -275,7 +275,7 @@ describe("MarkupFormatter", () => {
       expect(formatted).toMatchSnapshot();
     });
 
-    it("scenario 8", () => {
+    it("scenario 08", () => {
       const xml = html`
         <span bold color="yellow">
           [
@@ -302,7 +302,7 @@ describe("MarkupFormatter", () => {
       expect(formatted).toMatchSnapshot();
     });
 
-    it("scenario 9", () => {
+    it("scenario 09", () => {
       const xml = html`
         <span bold color="yellow">
           [<span color="none">Lorem ipsum</span>]<br />
@@ -330,6 +330,78 @@ describe("MarkupFormatter", () => {
         bold: true,
       });
       expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 10", () => {
+      const xml = html`
+        <span bold color="yellow">
+          <frame bold="0">
+            <span color="red">Header</span>
+            <br />
+            <span color="green">Content</span>
+          </frame>
+          <span>Other text</span>
+        </span>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌───────┐
+│Header │
+│Content│
+└───────┘
+Other text
+`.trim()
+      );
+
+      expect(formatted).toContainAnsiStringWithStyles("┌───────┐\n│", {
+        color: "yellow",
+      });
+      expect(formatted).toContainAnsiStringWithStyles("Header", {
+        color: "red",
+      });
+      expect(formatted).toContainAnsiStringWithStyles("Content", {
+        color: "green",
+      });
+      expect(formatted).toContainAnsiStringWithStyles(" │\n│", {
+        color: "yellow",
+      });
+      expect(formatted).toContainAnsiStringWithStyles("│\n└───────┘", {
+        color: "yellow",
+      });
+      expect(formatted).toContainAnsiStringWithStyles("Other text", {
+        color: "yellow",
+        bold: true,
+      });
+    });
+
+    it("scenario 11", () => {
+      const xml = html`
+        <span bold color="yellow">
+          <frame bold="0" padding="1">
+            <span color="red">Header</span>
+            <br />
+            <span color="green">Content</span>
+          </frame>
+          <span>Other text</span>
+        </span>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌─────────┐
+│         │
+│ Header  │
+│ Content │
+│         │
+└─────────┘
+Other text
+`.trim()
+      );
     });
   });
 
@@ -1488,7 +1560,7 @@ Some text`);
 
   describe("<pad> tag", () => {
     it("should not do anything id the size is not specified", () => {
-      const xml = html`<pad>Test</pad>`;
+      const xml = html` <pad>Test</pad>`;
 
       const formattedXml = MarkupFormatter.format(xml);
 
@@ -1497,7 +1569,7 @@ Some text`);
     });
 
     it("should correctly add padding for simple text", () => {
-      const xml = html`<pad size="2">Test</pad>`;
+      const xml = html` <pad size="2">Test</pad>`;
 
       const formattedXml = MarkupFormatter.format(xml);
 
@@ -1506,7 +1578,7 @@ Some text`);
     });
 
     it("should correctly add padding for multiline text", () => {
-      const xml = html`<pad size="2">
+      const xml = html` <pad size="2">
         <line>Line 1</line>
         <line>Line 2</line>
         <line>Line 3</line>
@@ -1534,7 +1606,7 @@ Some text`);
       const formattedXml = MarkupFormatter.format(xml);
 
       expect(formattedXml).toMatchAnsiString(
-        "   Line 1\n   Line 2\n   tag 1 tag 2"
+        "   Line 1\n   Line 2\n   tag 1   tag 2"
       );
       expect(formattedXml).toMatchSnapshot();
     });
@@ -1559,6 +1631,271 @@ Some text`);
         "  Line 1\n  Line 2\n    tag 1 tag 2"
       );
       expect(formattedXml).toMatchSnapshot();
+    });
+  });
+
+  describe("<frame> tag", () => {
+    it("scenario 01", () => {
+      const xml = html`
+        <span bold color="yellow">
+          <frame bold="0">
+            <span color="red">Header</span>
+            <br />
+            <span color="green">Content</span>
+          </frame>
+          <span>Other text</span>
+        </span>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌───────┐
+│Header │
+│Content│
+└───────┘
+Other text
+`.trim()
+      );
+
+      expect(formatted).toContainAnsiStringWithStyles("┌───────┐\n│", {
+        color: "yellow",
+      });
+      expect(formatted).toContainAnsiStringWithStyles("Header", {
+        color: "red",
+      });
+      expect(formatted).toContainAnsiStringWithStyles("Content", {
+        color: "green",
+      });
+      expect(formatted).toContainAnsiStringWithStyles(" │\n│", {
+        color: "yellow",
+      });
+      expect(formatted).toContainAnsiStringWithStyles("│\n└───────┘", {
+        color: "yellow",
+      });
+      expect(formatted).toContainAnsiStringWithStyles("Other text", {
+        color: "yellow",
+        bold: true,
+      });
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 02", () => {
+      const xml = html`
+        <span bold color="yellow">
+          <frame bold="0" padding="1">
+            <span color="red">Header</span>
+            <br />
+            <span color="green">Content</span>
+          </frame>
+          <span>Other text</span>
+        </span>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌─────────┐
+│         │
+│ Header  │
+│ Content │
+│         │
+└─────────┘
+Other text
+`.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 03", () => {
+      const xml = html`
+        <span bold color="yellow">
+          <frame bold="0" padding-left="4" padding-horizontal="2">
+            <pad size="1" color="red">Header</pad>
+            <span color="green">Content</span>
+          </frame>
+          <span>Other text</span>
+        </span>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌─────────────┐
+│     Header  │
+│    Content  │
+└─────────────┘
+Other text
+`.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 04", () => {
+      const xml = html`
+        <frame color="yellow" padding="1">
+          <frame padding-left="1">
+            <span>Before Frame</span>
+            <frame padding-top="1" color="blue">
+              <line>Inside the</line>
+              <span>Frame</span>
+            </frame>
+            <span>After Frame</span>
+          </frame>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌─────────────────┐
+│                 │
+│ ┌─────────────┐ │
+│ │ Before Frame│ │
+│ │ ┌──────────┐│ │
+│ │ │          ││ │
+│ │ │Inside the││ │
+│ │ │Frame     ││ │
+│ │ └──────────┘│ │
+│ │ After Frame │ │
+│ └─────────────┘ │
+│                 │
+└─────────────────┘
+`.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 05", () => {
+      const xml = html`
+        <frame>
+          <span>Hello World</span>
+        </frame>
+        <frame>
+          <span>Hello again</span>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌───────────┐
+│Hello World│
+└───────────┘
+┌───────────┐
+│Hello again│
+└───────────┘
+`.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+  });
+
+  describe("complex structures scenarios", () => {
+    it("scenario 01", () => {
+      const xml = html`
+        <frame padding="1" color="yellow">
+          <ul>
+            <li>Element 1</li>
+            <li>
+              <span>Element 2</span>
+            </li>
+            <li>
+              <span>
+                <span>Element</span>
+                <span>3</span>
+              </span>
+            </li>
+            <li>
+              <pad size="2">
+                <br />
+                <line>Element 4.1</line>
+                <line>Element 4.2</line>
+                Element 4.3
+              </pad>
+              <span>===============</span>
+            </li>
+          </ul>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌───────────────────┐
+│                   │
+│ ● Element 1       │
+│ ● Element 2       │
+│ ● Element 3       │
+│ ●                 │
+│     Element 4.1   │
+│     Element 4.2   │
+│     Element 4.3   │
+│   =============== │
+│                   │
+└───────────────────┘
+      `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 02", () => {
+      const xml = html`
+        <ul>
+          <li>Element 1</li>
+          <li>
+            <frame>Element 2</frame>
+          </li>
+          <li>
+            <span>
+              <span>Element 3:</span>
+              <frame padding="1">ELEMENT</frame>
+            </span>
+          </li>
+          <li>
+            <pad size="2">
+              <frame>
+                <ul type="circle">
+                  <li>Element 4.1</li>
+                  <li><frame>Element 4.2</frame></li>
+                </ul>
+              </frame>
+            </pad>
+          </li>
+        </ul>
+        ****
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+● Element 1
+● ┌─────────┐
+  │Element 2│
+  └─────────┘
+● Element 3:
+  ┌─────────┐
+  │         │
+  │ ELEMENT │
+  │         │
+  └─────────┘
+●   ┌───────────────┐
+    │○ Element 4.1  │
+    │○ ┌───────────┐│
+    │  │Element 4.2││
+    │  └───────────┘│
+    └───────────────┘
+****
+      `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
     });
   });
 });
