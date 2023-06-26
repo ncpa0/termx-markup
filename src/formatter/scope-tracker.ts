@@ -9,15 +9,14 @@ export type Scope = {
   blink?: boolean;
   dimmed?: boolean;
   inverted?: boolean;
+  join?: "space" | "none";
   noInherit?: boolean;
 };
 
+const DEFAULT_SCOPE: Scope = { tag: "" };
+
 export class ScopeTracker {
-  private static scopeStack: Scope[] = [
-    {
-      tag: "",
-    },
-  ];
+  private static scopeStack: Scope[] = [DEFAULT_SCOPE];
   private static _currentScope: Scope = this.scopeStack[0]!;
 
   static get currentScope(): Scope {

@@ -8,6 +8,12 @@ import type { Scope } from "./scope-tracker";
 import { ScopeTracker } from "./scope-tracker";
 import { CharacterGroup, TextRenderer } from "./text-renderer/text";
 
+declare global {
+  interface Array<T> {
+    includes(searchElement: any, fromIndex?: number): boolean;
+  }
+}
+
 /**
  * Formats given Markup into a string that can be printed to the
  * terminal.
@@ -56,10 +62,87 @@ export class MarkupFormatter {
     return desanitizeHtml(text.render());
   }
 
+  private static normalizeText(node: MarkupNode) {
+    if (node.tag === "pre") {
+      return;
+    }
+
+    const join = ScopeTracker.currentScope.join;
+
+    if (join === "none") {
+      for (let i = 0; i < node.content.length; i++) {
+        const content = node.content[i]!;
+        if (typeof content === "string") {
+          node.content[i] = content.replace(/\s*\n\s*/g, " ").trim();
+        }
+      }
+      return;
+    }
+
+    const doesLineStartsWithWhitespace = (index: number) => {
+      const line = node.content[index]!;
+      if (typeof line !== "string") {
+        return false;
+      }
+      return line[0] === " " || line[0] === "\n";
+    };
+
+    const lastIndex = node.content.length - 1;
+    for (let i = 0; i < node.content.length; i++) {
+      const content = node.content[i]!;
+
+      if (typeof content === "string") {
+        const singleLined = content.replace(/\s*\n\s*/g, " ");
+        let trimmed = singleLined.trim();
+        const prevTag =
+          ((node.content[i - 1] as MarkupNode)?.tag as string) || undefined;
+        const nextTag = (node.content[i + 1] as MarkupNode)?.tag;
+
+        const shouldSkipLeft = ["br", "s", "ul", "ol", "line"].includes(
+          prevTag
+        );
+        const shouldSkipRight = ["br", "s", "ul", "ol"].includes(nextTag);
+
+        if (trimmed.length === 0) {
+          if (
+            !shouldSkipLeft &&
+            !shouldSkipRight &&
+            i !== 0 &&
+            i !== lastIndex
+          ) {
+            node.content[i] = " ";
+          } else {
+            node.content[i] = "";
+          }
+        } else {
+          if (
+            !shouldSkipLeft &&
+            typeof node.content[i - 1] === "object" &&
+            singleLined[0] === " "
+          ) {
+            trimmed = " " + trimmed;
+          }
+
+          if (
+            !shouldSkipRight &&
+            i !== lastIndex &&
+            (singleLined[singleLined.length - 1] === " " ||
+              doesLineStartsWithWhitespace(i + 1))
+          ) {
+            node.content[i] = trimmed + " ";
+          } else {
+            node.content[i] = trimmed;
+          }
+        }
+      }
+    }
+  }
+
   private static parse(node: MarkupNode, result: TextRenderer): TextRenderer {
     switch (node.tag) {
       case "pre": {
         ScopeTracker.enterScope(this.createScope(node));
+        this.normalizeText(node);
 
         const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
@@ -81,21 +164,20 @@ export class MarkupFormatter {
       }
       case "li": {
         ScopeTracker.enterScope(this.createScope(node));
+        this.normalizeText(node);
 
         const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
-        const contents = node.content
-          .map((c) => (typeof c === "string" ? this.parseStringContent(c) : c))
-          .filter((c) => (typeof c === "string" ? c.trim().length : true));
+        const contents = node.content.filter((c) =>
+          typeof c === "string" ? c.length : true
+        );
 
         for (let i = 0; i < contents.length; i++) {
           const isLast = i === contents.length - 1;
           const content = contents[i]!;
 
           if (typeof content === "string") {
-            result.appendText(
-              charGroup.createChars(this.parseStringContent(content))
-            );
+            result.appendText(charGroup.createChars(content));
           } else {
             if ((content.tag === "ol" || content.tag === "ul") && i !== 0) {
               result.appendText(charGroup.createChars("\n"));
@@ -116,6 +198,7 @@ export class MarkupFormatter {
       case "line":
       case "span": {
         ScopeTracker.enterScope(this.createScope(node));
+        this.normalizeText(node);
 
         const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
@@ -123,9 +206,7 @@ export class MarkupFormatter {
           const content = node.content[i]!;
 
           if (typeof content === "string") {
-            result.appendText(
-              charGroup.createChars(this.parseStringContent(content))
-            );
+            result.appendText(charGroup.createChars(content));
           } else {
             this.parse(content, result);
           }
@@ -147,6 +228,7 @@ export class MarkupFormatter {
         const isNested = ScopeTracker.isImmediateChildOf("li");
 
         ScopeTracker.enterScope(this.createScope(node));
+        this.normalizeText(node);
 
         const unstyledCharGroup = new CharacterGroup({
           bg: ScopeTracker.currentScope.bg,
@@ -203,6 +285,7 @@ export class MarkupFormatter {
       }
       case "pad": {
         ScopeTracker.enterScope(this.createScope(node));
+        this.normalizeText(node);
 
         const charGroup = new CharacterGroup(ScopeTracker.currentScope);
 
@@ -214,9 +297,7 @@ export class MarkupFormatter {
           const content = node.content[i]!;
 
           if (typeof content === "string") {
-            contentText.appendText(
-              charGroup.createChars(this.parseStringContent(content))
-            );
+            contentText.appendText(charGroup.createChars(content));
           } else {
             this.parse(content, contentText);
           }
@@ -238,12 +319,20 @@ export class MarkupFormatter {
         return result.appendText(charGroup.createChars("\n"));
       }
       case "s": {
-        const charGroup =
-          result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
+        ScopeTracker.enterScope(this.createScope(node));
+        this.normalizeText(node);
 
-        return result.appendText(charGroup.createChars(" "));
+        const charGroup = new CharacterGroup(ScopeTracker.currentScope);
+
+        result.appendText(charGroup.createChars(" "));
+
+        ScopeTracker.exitScope();
+
+        return result;
       }
       case "": {
+        this.normalizeText(node);
+
         const charGroup =
           result.lastGroup ?? new CharacterGroup(ScopeTracker.currentScope);
 
@@ -251,9 +340,7 @@ export class MarkupFormatter {
           const content = node.content[i]!;
 
           if (typeof content === "string") {
-            result.appendText(
-              charGroup.createChars(this.parseStringContent(content))
-            );
+            result.appendText(charGroup.createChars(content));
           } else {
             this.parse(content, result);
           }
@@ -266,10 +353,6 @@ export class MarkupFormatter {
     console.warn(`Invalid tag: ${node.tag}`);
 
     return result;
-  }
-
-  private static parseStringContent(content: string) {
-    return content.replace(/\n/g, "").trim();
   }
 
   private static getAttribute(
@@ -390,6 +473,8 @@ export class MarkupFormatter {
         case "strike":
           scope.strikethrough = value === true || value === "true";
           break;
+        case "join":
+          scope.join = value === "space" ? "space" : "none";
       }
     }
 

@@ -8,13 +8,13 @@ describe("MarkupFormatter", () => {
         <line>Hello World</line>
         <line bold color="red">
           Red
-          <pre color="blue"> or blue? </pre>
+          <pre color="blue">or blue?</pre>
           text
         </line>
         <line underscore>
           <span>This</span>
-          <pre> is </pre>
-          <pre>one </pre>
+          <pre>is</pre>
+          <pre>one</pre>
           <span>line</span>
         </line>
       `;
@@ -31,11 +31,11 @@ describe("MarkupFormatter", () => {
         color: "red",
         bold: true,
       });
-      expect(formatted).toContainAnsiStringWithStyles(" or blue? ", {
+      expect(formatted).toContainAnsiStringWithStyles("or blue?", {
         color: "blue",
         bold: true,
       });
-      expect(formatted).toContainAnsiStringWithStyles("text", {
+      expect(formatted).toContainAnsiStringWithStyles(" text", {
         color: "red",
         bold: true,
       });
@@ -59,7 +59,7 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
-      expect(formatted).toMatchAnsiString("RedGreenBlueNormal");
+      expect(formatted).toMatchAnsiString("Red Green Blue Normal");
       expect(formatted).toContainAnsiStringWithStyles("Red", {
         color: "red",
       });
@@ -112,7 +112,7 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
-      expect(formatted).toMatchAnsiString(" Red  Green ");
+      expect(formatted).toMatchAnsiString(" Red   Green ");
       expect(formatted).toContainAnsiStringWithStyles(" Red ", {
         color: "red",
         bold: true,
@@ -130,7 +130,7 @@ describe("MarkupFormatter", () => {
 
     it("scenario 5", () => {
       const xml = html`
-        <span blink bold color="yellow">
+        <span join="none" underscore blink bold color="yellow">
           <pre>Lorem </pre>
           <span bold color="blue">
             <pre>ipsum </pre>
@@ -139,18 +139,18 @@ describe("MarkupFormatter", () => {
               <span invert>
                 <pre>sit </pre>
               </span>
-              <pre>amet</pre>
+              <pre>amet </pre>
             </span>
-            <pre> consectetur </pre>
+            <pre>consectetur </pre>
           </span>
-          <pre>adipiscing </pre>
+          <pre>adipiscing</pre>
         </span>
       `;
 
       const formatted = MarkupFormatter.format(xml);
 
       expect(formatted).toMatchAnsiString(
-        "Lorem ipsum dolor sit amet consectetur adipiscing "
+        "Lorem ipsum dolor sit amet consectetur adipiscing"
       );
       expect(formatted).toContainAnsiStringWithStyles("Lorem ", {
         color: "yellow",
@@ -182,14 +182,14 @@ describe("MarkupFormatter", () => {
         dimmed: true,
         inverted: false,
       });
-      expect(formatted).toContainAnsiStringWithStyles(" consectetur ", {
+      expect(formatted).toContainAnsiStringWithStyles("consectetur ", {
         color: "blue",
         bold: true,
         blink: true,
         dimmed: false,
         inverted: false,
       });
-      expect(formatted).toContainAnsiStringWithStyles("adipiscing ", {
+      expect(formatted).toContainAnsiStringWithStyles("adipiscing", {
         color: "yellow",
         bold: true,
         blink: true,
@@ -213,14 +213,14 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
-      expect(formatted).toMatchAnsiString("Green Blue Orange");
+      expect(formatted).toMatchAnsiString("Green   Blue   Orange");
       expect(formatted).toContainAnsiStringWithStyles("Green", {
         color: "rgb(137, 245, 209)",
       });
       expect(formatted).toContainAnsiStringWithStyles("Blue", {
         color: "blue",
       });
-      expect(formatted).toContainAnsiStringWithStyles(" Orange", {
+      expect(formatted).toContainAnsiStringWithStyles("   Orange", {
         color: "#f5aa42",
       });
       expect(formatted).toMatchSnapshot();
@@ -229,13 +229,13 @@ describe("MarkupFormatter", () => {
     it("scenario 7", () => {
       const xml = html`
         <span underscore color="yellow">
-          <pre>Lorem </pre>
+          <pre>Lorem</pre>
           <span no-inherit strike color="blue">
-            <pre>ipsum </pre>
+            <pre>ipsum</pre>
             <span dim color="green">
-              <pre>dolor </pre>
+              <pre>dolor</pre>
             </span>
-            <pre> sit </pre>
+            <pre>sit</pre>
           </span>
           <pre>amet</pre>
         </span>
@@ -243,7 +243,7 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
-      expect(formatted).toMatchAnsiString("Lorem ipsum dolor  sit amet");
+      expect(formatted).toMatchAnsiString("Lorem ipsum dolor sit amet");
       expect(formatted).toContainAnsiStringWithStyles("Lorem ", {
         color: "yellow",
         underscore: true,
@@ -253,19 +253,19 @@ describe("MarkupFormatter", () => {
         strikethrough: true,
         underscore: false,
       });
-      expect(formatted).toContainAnsiStringWithStyles("dolor ", {
+      expect(formatted).toContainAnsiStringWithStyles("dolor", {
         color: "green",
         dimmed: true,
         strikethrough: true,
         underscore: false,
       });
-      expect(formatted).toContainAnsiStringWithStyles(" sit ", {
+      expect(formatted).toContainAnsiStringWithStyles(" sit", {
         color: "blue",
         strikethrough: true,
         underscore: false,
         dimmed: false,
       });
-      expect(formatted).toContainAnsiStringWithStyles("amet", {
+      expect(formatted).toContainAnsiStringWithStyles(" amet", {
         color: "yellow",
         underscore: true,
         strikethrough: false,
@@ -285,8 +285,8 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
-      expect(formatted).toMatchAnsiString("[Hello world]");
-      expect(formatted).toContainAnsiStringWithStyles("[", {
+      expect(formatted).toMatchAnsiString("[ Hello world ]");
+      expect(formatted).toContainAnsiStringWithStyles("[ ", {
         color: "yellow",
         bold: true,
       });
@@ -294,8 +294,38 @@ describe("MarkupFormatter", () => {
         color: "none",
         bold: true,
       });
+      expect(formatted).toContainAnsiStringWithStyles(" ]", {
+        color: "yellow",
+        bold: true,
+      });
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 9", () => {
+      const xml = html`
+        <span bold color="yellow">
+          [<span color="none">Lorem ipsum</span>]<br />
+          <span>[</span><span color="none">dolor sit amet</span><span>]</span>
+        </span>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString("[Lorem ipsum]\n[dolor sit amet]");
+      expect(formatted).toContainAnsiStringWithStyles("[", {
+        color: "yellow",
+        bold: true,
+      });
+      expect(formatted).toContainAnsiStringWithStyles("Lorem ipsum", {
+        color: "none",
+        bold: true,
+      });
       expect(formatted).toContainAnsiStringWithStyles("]", {
         color: "yellow",
+        bold: true,
+      });
+      expect(formatted).toContainAnsiStringWithStyles("dolor sit amet", {
+        color: "none",
         bold: true,
       });
       expect(formatted).toMatchSnapshot();
@@ -1516,7 +1546,6 @@ Some text`);
           <line>
             <pad size="2">
               <span>tag 1</span>
-              <s />
               <span>tag 2</span>
             </pad>
           </line>
