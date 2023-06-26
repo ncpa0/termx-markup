@@ -37,8 +37,8 @@ const formatExpectedReceived = (value) =>
   value
 
     .split("\n")
-    .map((line, i) => {
-      const eolChar = Dimmed + "\\n" + unset;
+    .map((line, i, arr) => {
+      const eolChar = i < arr.length - 1 ? Dimmed + "\\n" + unset : "";
 
       line = line.replace(/ /g, Dimmed + String.fromCharCode(183) + unset);
       if (i === 0) return line + eolChar;
@@ -89,9 +89,9 @@ ${red + Bold}Received:${unset} ${displayReceived}`,
         message:
           () => `${Bold}Received string does not contain the expected substring.${unset}
   
-${green + Bold}Expected:${unset} ${formatExpectedReceived(expected)}
+${green + Bold}Expected:${unset} ${formatExpectedReceived(stripAnsi(expected))}
           
-${red + Bold}Received:${unset} ${formatExpectedReceived(received)}`,
+${red + Bold}Received:${unset} ${formatExpectedReceived(stripAnsi(received))}`,
         pass: false,
       };
     }

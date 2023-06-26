@@ -113,6 +113,51 @@ export class TextRenderer {
     return this.characters[this.characters.length - 1];
   }
 
+  get longestLineLength(): number {
+    let max = 0;
+    let current = 0;
+
+    for (let i = 0; i < this.characters.length; i++) {
+      const char = this.characters[i]!;
+
+      if (char.value === "\n") {
+        max = Math.max(max, current);
+        current = 0;
+      } else {
+        current++;
+      }
+    }
+
+    return Math.max(max, current);
+  }
+
+  mapLines(
+    callback: (line: Character[], endlineChar?: Character) => Character[]
+  ) {
+    let newLines: Character[] = [];
+    let line: Character[] = [];
+
+    for (let i = 0; i < this.characters.length; i++) {
+      const char = this.characters[i]!;
+
+      if (char.value === "\n") {
+        newLines = newLines.concat(callback(line, char));
+        line = [];
+        continue;
+      }
+
+      line.push(char);
+    }
+
+    if (line.length) {
+      newLines = newLines.concat(callback(line));
+    }
+
+    this.characters = newLines;
+
+    return this;
+  }
+
   prependAllLines(chars: Character[]) {
     this.characters = chars.concat(
       this.characters.flatMap((char, i) => {
@@ -184,5 +229,10 @@ export class TextRenderer {
     }
 
     return result + `${Unset}`;
+  }
+
+  /** Used to lookup the contents in the debugger. */
+  get valueOf() {
+    return this.render();
   }
 }

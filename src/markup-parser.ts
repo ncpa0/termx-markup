@@ -65,10 +65,10 @@ export class MarkupParserError extends Error {
 
 class MarkupNodeBuilder {
   o: MarkupNode = {
-    textNode: false,
     tag: "",
-    attributes: [],
     content: [],
+    attributes: [],
+    textNode: false,
   };
 
   content: Array<string | MarkupNodeBuilder> = [];

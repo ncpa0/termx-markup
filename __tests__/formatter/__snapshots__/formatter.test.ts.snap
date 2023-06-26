@@ -1,5 +1,56 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`MarkupFormatter <frame> tag scenario 01 1`] = `
+"[0m[33m┌───────┐
+│[0m[31mHeader[0m[33m │
+│[0m[32mContent[0m[33m│
+└───────┘
+[0m[33m[1mOther text[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 02 1`] = `
+"[0m[33m┌─────────┐
+│         │
+│ [0m[31mHeader[0m[33m  │
+│ [0m[32mContent[0m[33m │
+│         │
+└─────────┘
+[0m[33m[1mOther text[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 03 1`] = `
+"[0m[33m┌─────────────┐
+│    [0m[31m Header[0m[33m  │
+│    [0m[32mContent[0m[33m  │
+└─────────────┘
+[0m[33m[1mOther text[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 04 1`] = `
+"[0m[33m┌─────────────────┐
+│                 │
+│ ┌─────────────┐ │
+│ │ Before Frame│ │
+│ │ [0m[34m┌──────────┐[0m[33m│ │
+│ │ [0m[34m│          │[0m[33m│ │
+│ │ [0m[34m│Inside the│[0m[33m│ │
+│ │ [0m[34m│Frame     │[0m[33m│ │
+│ │ [0m[34m└──────────┘[0m[33m│ │
+│ │ After Frame │ │
+│ └─────────────┘ │
+│                 │
+└─────────────────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 05 1`] = `
+"[0m┌───────────┐
+│Hello World│
+└───────────┘
+┌───────────┐
+│Hello again│
+└───────────┘[0m"
+`;
+
 exports[`MarkupFormatter <ol> tag should correctly render list with numbered indexes 1`] = `
 "[0m1. [0m[31mRed[0m
 2. [0m[32mGreen[0m
@@ -73,8 +124,8 @@ exports[`MarkupFormatter <ol> tag should correctly render nested list scenario 2
 3. Shades of blue
    1. [0m[34mBlue[0m
    2. [0m[38;2;0;147;175mMunsell[0m
-   3. [0m[38;2;204;204;255mPeriwinkle[0m
-   **************[0m"
+   3. [0m[38;2;204;204;255mPeriwinkle
+[0m   **************[0m"
 `;
 
 exports[`MarkupFormatter <ol> tag should correctly render nested list scenario 3 1`] = `
@@ -83,14 +134,14 @@ exports[`MarkupFormatter <ol> tag should correctly render nested list scenario 3
 3. Shades of blue
    1. [0m[34mBlue[0m
    2. [0m[38;2;0;147;175mMunsell[0m
-   3. [0m[38;2;204;204;255mPeriwinkle[0m
-   **************[0m"
+   3. [0m[38;2;204;204;255mPeriwinkle
+[0m   **************[0m"
 `;
 
 exports[`MarkupFormatter <ol> tag should correctly render nested list scenario 4 1`] = `
 "[0m[1m1.[0m [0m[31m[1mFoo[0m[1m
 2.[0m [0m[1m[3m[4m1.[0m [0m[34m[1m[2m[3m[4mBar[0m[1m[3m[4m
-[0m   [0m[1m[3m[4m2.[0m [0m[94m[1m[3m[4mBaz[0m[1m
+[0m   [0m[1m[3m[4m2.[0m [0m[94m[1m[3m[4mBaz
 [0m[7m1. [0m[33m[7mQux[0m[7m
 2. [0m[5m[7mLi header
 [0m[7m   [0m[5m[7m1.[0m[7m [0m[32m[5m[7mCorge[0m"
@@ -102,8 +153,8 @@ exports[`MarkupFormatter <ol> tag should correctly render text that comes after 
 3. Shades of blue
    1. [0m[34mBlue[0m
    2. [0m[38;2;0;147;175mMunsell[0m
-   3. [0m[38;2;204;204;255mPeriwinkle[0m
-Some text[0m"
+   3. [0m[38;2;204;204;255mPeriwinkle
+[0mSome text[0m"
 `;
 
 exports[`MarkupFormatter <ol> tag with <ul> tag nested inside 1`] = `
@@ -125,7 +176,7 @@ exports[`MarkupFormatter <pad> tag should correctly add padding for multiline te
 exports[`MarkupFormatter <pad> tag should correctly add padding for multiline text with nested tags 1`] = `
 "[0m   Line 1
    Line 2
-   tag 1 tag 2[0m"
+   tag 1   tag 2[0m"
 `;
 
 exports[`MarkupFormatter <pad> tag should correctly add padding for nested pad tags 1`] = `
@@ -172,32 +223,67 @@ exports[`MarkupFormatter <ul> tag with <ol> tag nested inside 1`] = `
 ● [0m[31mQux[0m"
 `;
 
-exports[`MarkupFormatter should correctly format the xml scenario 1 1`] = `
+exports[`MarkupFormatter complex structures scenarios scenario 01 1`] = `
+"[0m[33m┌───────────────────┐
+│                   │
+│ ●[0m [0m[33mElement 1       │
+│ ●[0m [0m[33mElement 2       │
+│ ●[0m [0m[33mElement 3       │
+│ ●[0m [0m[33m                │
+│ [0m  [0m[33m  Element 4.1   │
+│ [0m  [0m[33m  Element 4.2   │
+│ [0m  [0m[33m  Element 4.3   │
+│ [0m  [0m[33m=============== │
+│                   │
+└───────────────────┘[0m"
+`;
+
+exports[`MarkupFormatter complex structures scenarios scenario 02 1`] = `
+"[0m● Element 1
+● ┌─────────┐
+  │Element 2│
+  └─────────┘
+● Element 3:
+  ┌─────────┐
+  │         │
+  │ ELEMENT │
+  │         │
+  └─────────┘
+●   ┌───────────────┐
+    │○ Element 4.1  │
+    │○ ┌───────────┐│
+    │  │Element 4.2││
+    │  └───────────┘│
+    └───────────────┘
+****[0m"
+`;
+
+exports[`MarkupFormatter should correctly format the xml scenario 01 1`] = `
 "[0mHello World
 [0m[31m[1mRed [0m[34m[1mor blue?[0m[31m[1m text
 [0m[4mThis is one line[0m"
 `;
 
-exports[`MarkupFormatter should correctly format the xml scenario 2 1`] = `"[0m[31mRed[0m [0m[32mGreen[0m [0m[34mBlue[0m Normal[0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 02 1`] = `"[0m[31mRed[0m [0m[32mGreen[0m [0m[34mBlue[0m Normal[0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 3 1`] = `
+exports[`MarkupFormatter should correctly format the xml scenario 03 1`] = `
 "[0m[31mRed
 [0m[32mGreen
 [0m[34mBlue
 [0mNormal[0m"
 `;
 
-exports[`MarkupFormatter should correctly format the xml scenario 4 1`] = `"[0m[31m[1m[3m[4m Red [0m[1m[3m[4m [0m[32m[1m[3m[4m Green [0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 04 1`] = `"[0m[31m[1m[3m[4m Red [0m[1m[3m[4m [0m[32m[1m[3m[4m Green [0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 5 1`] = `"[0m[33m[1m[4m[5mLorem [0m[34m[1m[4m[5mipsum [0m[32m[1m[2m[4m[5mdolor [0m[32m[1m[2m[4m[5m[7msit [0m[32m[1m[2m[4m[5mamet [0m[34m[1m[4m[5mconsectetur [0m[33m[1m[4m[5madipiscing[0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 05 1`] = `"[0m[33m[1m[4m[5mLorem [0m[34m[1m[4m[5mipsum [0m[32m[1m[2m[4m[5mdolor [0m[32m[1m[2m[4m[5m[7msit[0m[32m[1m[2m[4m[5m amet[0m[34m[1m[4m[5m consectetur[0m[33m[1m[4m[5m adipiscing[0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 6 1`] = `"[0m[38;2;137;245;209mGreen[0m[38;2;245;170;66m   [0m[34mBlue[0m[38;2;245;170;66m   Orange[0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 06 1`] = `"[0m[38;2;137;245;209mGreen[0m[38;2;245;170;66m   [0m[34mBlue[0m[38;2;245;170;66m   Orange[0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 7 1`] = `"[0m[33m[4mLorem [0m[34m[9mipsum [0m[32m[2m[9mdolor[0m[34m[9m sit[0m[33m[4m amet[0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 07 1`] = `"[0m[33m[4mLorem [0m[34m[9mipsum [0m[32m[2m[9mdolor[0m[34m[9m sit[0m[33m[4m amet[0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 8 1`] = `"[0m[33m[1m[ [0m[1mHello world[0m[33m[1m ][0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 08 1`] = `"[0m[33m[1m[ [0m[1mHello world[0m[33m[1m ][0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 9 1`] = `
+exports[`MarkupFormatter should correctly format the xml scenario 09 1`] = `
 "[0m[33m[1m[[0m[1mLorem ipsum[0m[33m[1m]
 [[0m[1mdolor sit amet[0m[33m[1m][0m"
 `;
