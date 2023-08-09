@@ -110,6 +110,31 @@ Output.print(html`
 - `<ol>` - ordered list, each child element is required to ba a `<li>` tag
 - `<ul>` - unordered list, each child element is required to ba a `<li>` tag, accepts additional attribute `type` (string) which can be of value `circle`, `square` or `bullet` (default is `bullet`)
 - `<pad>` - adds left padding to it's content, accepts attribute `size` (number) which determines the number of spaces to print
+- `<frame>` - adds a border around it's content, accepts attributes `padding`, `padding-left`, `padding-right`, `padding-top`, `padding-bottom`, `padding-horizontal` and `padding-vertical` (number) which determines the number of spaces to print between the border and the content
+
+## Inline and Block elements
+
+There are two display types of elements, `inline` and `block`.
+
+Inline elements are always rendered next to each other within the same line, if there are any white-spaces between the inline elements it will be replaced with a single space.
+
+Block elements, start with a line break character, unless the block element is the first one, and end with a line break, unless the block element is the last one.
+
+#### Inline elements:
+
+- `<span>`
+- `<pre>`
+- `<br>`
+- `<s>`
+- `<li>`
+
+#### Block elements:
+
+- `<line>`
+- `<frame>`
+- `<pad>`
+- `<ul>`
+- `<ol>`
 
 ## Supported attributes
 
