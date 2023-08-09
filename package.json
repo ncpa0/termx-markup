@@ -8,6 +8,7 @@
     "@types/jest": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
+    "axios": "latest",
     "esbuild": "latest",
     "eslint": "latest",
     "eslint-config-prettier": "latest",
@@ -18,8 +19,8 @@
     "pr-changelog-gen": "latest",
     "prettier": "latest",
     "prettier-plugin-jsdoc": "latest",
-    "typescript": "latest",
-    "strip-ansi": "latest"
+    "strip-ansi": "latest",
+    "typescript": "latest"
   },
   "version": "1.1.1",
   "main": "./dist/legacy/index.js",
