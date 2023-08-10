@@ -403,6 +403,88 @@ Other text
 `.trim()
       );
     });
+
+    it("scenario 12", () => {
+      const xml = html`
+        <line>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
+        </line>
+        <line>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
+          auctor, odio at ultricies hendrerit, nisl nunc ultrices tortor, quis
+        </line>
+        <line>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
+          auctor, odio at ultricies hendrerit, nisl nunc ultrices tortor, quis
+          ultricies nisl nunc ultrices tortor, quis ultricies nisl nunc ultrices
+        </line>
+        <line>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam
+          auctor, odio at ultricies hendrerit, nisl nunc ultrices tortor, quis
+          ultricies nisl nunc ultrices tortor, quis ultricies nisl nunc ultrices
+          tortor, quis ultricies nisl nunc ultrices tortor, quis ultricies nisl
+          nunc ultrices tortor, quis ultricies nisl nunc.
+        </line>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        // First line
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam\n" +
+          // Second line
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam" +
+          " auctor, odio at ultricies hendrerit, nisl nunc ultrices tortor, quis\n" +
+          // Third line
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam" +
+          " auctor, odio at ultricies hendrerit, nisl nunc ultrices tortor, quis" +
+          " ultricies nisl nunc ultrices tortor, quis ultricies nisl nunc ultrices\n" +
+          // Fourth line
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam" +
+          " auctor, odio at ultricies hendrerit, nisl nunc ultrices tortor, quis" +
+          " ultricies nisl nunc ultrices tortor, quis ultricies nisl nunc ultrices" +
+          " tortor, quis ultricies nisl nunc ultrices tortor, quis ultricies nisl" +
+          " nunc ultrices tortor, quis ultricies nisl nunc."
+      );
+    });
+
+    it("scenario 13", () => {
+      const xml = html`
+        <line>
+          <span>One space:|</span>
+          <span>|</span>
+        </line>
+        <line>
+          <span>Two spaces:|</span>
+          <s />
+          <span>|</span>
+        </line>
+        <line>
+          <span>Three spaces:|</span>
+          <s />
+          <s />
+          <span>|</span>
+        </line>
+        <line>
+          <span>Four spaces:|</span>
+          <s />
+          <s />
+          <s />
+          <span>|</span>
+        </line>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+One space:| |
+Two spaces:|  |
+Three spaces:|   |
+Four spaces:|    |
+      `.trim()
+      );
+    });
   });
 
   describe("<ol> tag", () => {
@@ -1606,7 +1688,7 @@ Some text`);
       const formattedXml = MarkupFormatter.format(xml);
 
       expect(formattedXml).toMatchAnsiString(
-        "   Line 1\n   Line 2\n   tag 1   tag 2"
+        "   Line 1\n   Line 2\n   tag 1  tag 2"
       );
       expect(formattedXml).toMatchSnapshot();
     });

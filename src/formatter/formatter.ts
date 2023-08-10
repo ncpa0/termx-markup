@@ -144,13 +144,31 @@ export class MarkupFormatter {
     }
   }
 
+  private removeLineBreaks(text: string) {
+    const lines = text.split("\n");
+
+    let result = "";
+
+    if (lines[0]![0] === " " || lines[0]![0] === "\n") {
+      result += " ";
+    }
+
+    for (let i = 0; i < lines.length - 1; i++) {
+      result += lines[i]!.trim() + " ";
+    }
+
+    result += lines[lines.length - 1]!.trim();
+
+    return result;
+  }
+
   private normalizeNode(node: MarkupNode) {
     if (node.tag !== "pre") {
       for (let i = 0; i < node.content.length; i++) {
         const content = node.content[i]!;
 
         if (typeof content === "string") {
-          const singleLined = content.replaceAll("\n", " ");
+          const singleLined = this.removeLineBreaks(content);
           let trimmed = singleLined.trim();
           const prevNodeDisplayType = getNodeDisplayType(node.content[i - 1]);
           const nextNodeDisplayType = getNodeDisplayType(node.content[i + 1]);
@@ -167,7 +185,7 @@ export class MarkupFormatter {
           if (trimmed.length === 0) {
             const shouldKeepWhitespace = !isStartOfLine && !isEndOfLine;
 
-            if (shouldKeepWhitespace) {
+            if (shouldKeepWhitespace && prevTag !== "s") {
               node.content[i] = " ";
             } else {
               // Remove the empty node

@@ -176,7 +176,7 @@ exports[`MarkupFormatter <pad> tag should correctly add padding for multiline te
 exports[`MarkupFormatter <pad> tag should correctly add padding for multiline text with nested tags 1`] = `
 "[0m   Line 1
    Line 2
-   tag 1   tag 2[0m"
+   tag 1  tag 2[0m"
 `;
 
 exports[`MarkupFormatter <pad> tag should correctly add padding for nested pad tags 1`] = `
