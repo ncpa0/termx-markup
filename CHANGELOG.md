@@ -1,3 +1,29 @@
+## 2.0.1 (August 10, 2023)
+
+### Bug Fixes
+
+- #### fix: too many whitespace characters in between lines of raw text ([#7](https://github.com/ncpa0cpl/termx-markup/pull/7))
+
+  1. Fixed a bug which was causing one too many spaces be added to the text where `<s />` was used.
+  2. Fixed a bug which was causing multiline raw text to get joined with too many white-space characters.
+  
+      ### Example
+      Input:
+      ```html
+      <span>
+                   Hello
+                   World
+      </span>
+      ```
+      Old output:
+      ```
+      Hello             World
+      ```
+      New output:
+      ```
+      Hello World
+      ```
+
 ## 2.0.0 (August 9, 2023)
 
 ### Features
