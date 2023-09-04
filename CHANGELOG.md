@@ -1,3 +1,13 @@
+## 2.0.2 (September 4, 2023)
+
+### Bug Fixes
+
+- #### fix: stringification of arguments provided to the `html` tag template ([#8](https://github.com/ncpa0cpl/termx-markup/pull/8))
+
+  stringifying arguments of the `html` tag template was previously done by calling `.toString()` method on each arg, this was causing errors for cases where an argument was an `undefined` value.
+  
+  Instead the stringification is now done with the [String() constructor function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/String), which can properly handle undefined values.
+
 ## 2.0.1 (August 10, 2023)
 
 ### Bug Fixes
