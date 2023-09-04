@@ -1,6 +1,49 @@
 {
   "name": "termx-markup",
-  "packageManager": "yarn@1.22.19",
+  "version": "2.0.1",
+  "description": "Markup based text formatting for terminal.",
+  "license": "MIT",
+  "author": {
+    "name": "Szymon Bretner (ncpa0cpl)",
+    "email": "szymonb21@gmail.com"
+  },
+  "keywords": [
+    "markup",
+    "html",
+    "xml",
+    "color",
+    "ansi",
+    "terminal",
+    "cli",
+    "console",
+    "format",
+    "formatting",
+    "text",
+    "string"
+  ],
+  "repository": {
+    "url": "https://github.com/ncpa0cpl/termx-markup"
+  },
+  "main": "./dist/legacy/index.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./dist/cjs/index.cjs"
+    }
+  },
+  "scripts": {
+    "fix:lint": "eslint --fix .",
+    "fix:prettier": "prettier -w ./src .",
+    "test:jest": "jest --coverage",
+    "test:jest:debug": "DISPLAY_RESULTS=true jest",
+    "test:lint": "eslint .",
+    "test:prettier": "prettier -c ./src && prettier -c ./__tests__",
+    "test:tsc": "tsc --noEmit",
+    "build": "node ./scripts/build.cjs",
+    "bench": "NODE_PATH=/usr/local/lib/node_modules node ./benchmarks/run-bench.cjs"
+  },
   "devDependencies": {
     "@ncpa0cpl/nodepack": "latest",
     "@swc/core": "latest",
@@ -22,48 +65,5 @@
     "strip-ansi": "latest",
     "typescript": "latest"
   },
-  "version": "2.0.1",
-  "main": "./dist/legacy/index.js",
-  "types": "./dist/types/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.mjs",
-      "require": "./dist/cjs/index.cjs"
-    }
-  },
-  "scripts": {
-    "fix:lint": "eslint --fix .",
-    "fix:prettier": "prettier -w ./src .",
-    "test:jest": "jest --coverage",
-    "test:jest:debug": "DISPLAY_RESULTS=true jest",
-    "test:lint": "eslint .",
-    "test:prettier": "prettier -c ./src && prettier -c ./__tests__",
-    "test:tsc": "tsc --noEmit",
-    "build": "node ./scripts/build.cjs",
-    "bench": "NODE_PATH=/usr/local/lib/node_modules node ./benchmarks/run-bench.cjs"
-  },
-  "keywords": [
-    "markup",
-    "html",
-    "xml",
-    "color",
-    "ansi",
-    "terminal",
-    "cli",
-    "console",
-    "format",
-    "formatting",
-    "text",
-    "string"
-  ],
-  "repository": {
-    "url": "https://github.com/ncpa0cpl/termx-markup"
-  },
-  "description": "Markup based text formatting for terminal.",
-  "license": "MIT",
-  "author": {
-    "name": "Szymon Bretner (ncpa0cpl)",
-    "email": "szymonb21@gmail.com"
-  }
+  "packageManager": "yarn@1.22.19"
 }

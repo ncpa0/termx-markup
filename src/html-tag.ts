@@ -19,10 +19,10 @@ export function html(...args: any[]): string {
       args[a].name === "RawHtml"
     ) {
       // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-      c += args[a].toString() + b[a];
+      c += String(args[a]) + b[a];
     } else {
       // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-      c += sanitizeHtml(args[a].toString()) + b[a];
+      c += sanitizeHtml(String(args[a])) + b[a];
     }
   }
   return c;
