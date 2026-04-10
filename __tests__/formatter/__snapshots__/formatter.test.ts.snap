@@ -51,6 +51,73 @@ exports[`MarkupFormatter <frame> tag scenario 05 1`] = `
 └───────────┘[0m"
 `;
 
+exports[`MarkupFormatter <frame> tag scenario 06 1`] = `
+"[0m┌──────────────┐
+│              │
+│   Header     │
+│   Content    │
+│              │
+└──────────────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 07 1`] = `
+"[0m┌──────────────┐
+│              │
+│              │
+│       Header │
+│       Content│
+└──────────────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 08 1`] = `
+"[0m┌──────────────┐
+│Header        │
+│Content       │
+│              │
+│              │
+└──────────────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 09 1`] = `
+"[0m┌─────────┐
+│ Header  │
+│ Content │
+└─────────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 10 1`] = `
+"[0m┌──────────────────────┐
+│                      │
+│Content longer than 11│
+│                      │
+└──────────────────────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 11 1`] = `
+"[0m┌───────────┐
+│  Content  │
+│  taller   │
+│  than     │
+│  5        │
+│  lol      │
+└───────────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 12 1`] = `
+"[0m┌────┐
+│Head│
+│Cont│
+└────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 13 1`] = `
+"[0m┌───────┐
+│Content│
+│taller │
+│than   │
+└───────┘[0m"
+`;
+
 exports[`MarkupFormatter <ol> tag should correctly render list with numbered indexes 1`] = `
 "[0m1. [0m[31mRed[0m
 2. [0m[32mGreen[0m

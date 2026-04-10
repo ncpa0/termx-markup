@@ -123,7 +123,7 @@ export class MarkupFormatter {
     return MarkupFormatter._instance.format(markup);
   }
 
-  constructor(private settings: Settings = GlobalSettings) {}
+  constructor(private settings: Settings = GlobalSettings) { }
 
   format(markup: string | MarkupNode): string {
     const node = typeof markup === "string" ? parseMarkup(markup) : markup;
@@ -433,6 +433,23 @@ export class MarkupFormatter {
           this.getAttribute(node, "padding-right") ?? paddingHorizontal
         );
 
+        const attrWidth = this.getAttribute(node, "width");
+        const attrHeight = this.getAttribute(node, "height");
+        const attrMinWidth = this.getAttribute(node, "min-width");
+        const attrMinHeight = this.getAttribute(node, "min-height");
+
+        const fixedWidth = attrWidth != null ? Number(attrWidth) : undefined;
+        const fixedHeight = attrHeight != null ? Number(attrHeight) : undefined;
+        const minWidth =
+          attrMinWidth != null ? Number(attrMinWidth) : undefined;
+        const minHeight =
+          attrMinHeight != null ? Number(attrMinHeight) : undefined;
+
+        const hcenter = this.getBoolAttribute(node, "hcenter");
+        const hend = this.getBoolAttribute(node, "hend");
+        const vcenter = this.getBoolAttribute(node, "vcenter");
+        const vend = this.getBoolAttribute(node, "vend");
+
         const contentText = new TextRenderer();
 
         for (let i = 0; i < node.content.length; i++) {
@@ -445,8 +462,47 @@ export class MarkupFormatter {
           }
         }
 
+        const contentWidth = contentText.longestLineLength;
+        const contentHeight = contentText.lines;
+
+        const naturalInnerWidth = contentWidth + paddingLeft + paddingRight;
+        const naturalInnerHeight = contentHeight + paddingTop + paddingBottom;
+
         const frameInnerWidth =
-          contentText.longestLineLength + paddingLeft + paddingRight;
+          fixedWidth != null
+            ? fixedWidth - 2 // exact, content will be clipped
+            : Math.max(naturalInnerWidth, minWidth != null ? minWidth - 2 : 0);
+
+        // Similarly for height
+        const frameInnerHeight =
+          fixedHeight != null
+            ? fixedHeight - 2
+            : Math.max(
+              naturalInnerHeight,
+              minHeight != null ? minHeight - 2 : 0
+            );
+
+        const extraWidth = Math.max(0, frameInnerWidth - naturalInnerWidth);
+        const extraHeight = Math.max(0, frameInnerHeight - naturalInnerHeight);
+
+        const extraLeft = hcenter
+          ? Math.floor(extraWidth / 2)
+          : hend
+            ? extraWidth
+            : 0;
+        const extraRight = extraWidth - extraLeft;
+
+        const extraTop = vcenter
+          ? Math.floor(extraHeight / 2)
+          : vend
+            ? extraHeight
+            : 0;
+        const extraBottom = extraHeight - extraTop;
+
+        const effectivePaddingLeft = paddingLeft + extraLeft;
+        const effectivePaddingRight = paddingRight + extraRight;
+        const effectivePaddingTop = paddingTop + extraTop;
+        const effectivePaddingBottom = paddingBottom + extraBottom;
 
         const top =
           FRAME_CHARS.topLeft +
@@ -459,20 +515,28 @@ export class MarkupFormatter {
           FRAME_CHARS.bottom.repeat(frameInnerWidth) +
           FRAME_CHARS.bottomRight;
 
+        const maxContentWidth =
+          frameInnerWidth - effectivePaddingLeft - effectivePaddingRight;
+
         contentText.mapLines((line, endline) => {
+          // Trim to fit if a fixed width is set and this line is too long
+          const fittedLine =
+            fixedWidth != null && line.length > maxContentWidth
+              ? line.slice(0, maxContentWidth)
+              : line;
+
+          const rightPad = Math.max(
+            0,
+            effectivePaddingRight,
+            frameInnerWidth - fittedLine.length - effectivePaddingLeft
+          );
+
           const newline = [
             ...charGroup.createChars(
-              FRAME_CHARS.left + " ".repeat(paddingLeft)
+              FRAME_CHARS.left + " ".repeat(effectivePaddingLeft)
             ),
-            ...line,
-            ...charGroup.createChars(
-              " ".repeat(
-                Math.max(
-                  paddingRight,
-                  frameInnerWidth - line.length - paddingLeft
-                )
-              ) + FRAME_CHARS.right
-            ),
+            ...fittedLine,
+            ...charGroup.createChars(" ".repeat(rightPad) + FRAME_CHARS.right),
           ];
 
           if (endline) {
@@ -482,23 +546,29 @@ export class MarkupFormatter {
           return newline;
         });
 
+        const maxLines =
+          frameInnerHeight - effectivePaddingTop - effectivePaddingBottom;
+
+        contentText.sliceLines(maxLines);
+
+        // Vertical padding (original top/bottom) + any extra from vcenter/vend
         const topVerticalPaddingLine = charGroup.createChars(
           FRAME_CHARS.left +
-            " ".repeat(frameInnerWidth) +
-            FRAME_CHARS.right +
-            "\n"
+          " ".repeat(frameInnerWidth) +
+          FRAME_CHARS.right +
+          "\n"
         );
         const bottomVerticalPaddingLine = charGroup.createChars(
           "\n" +
-            FRAME_CHARS.left +
-            " ".repeat(frameInnerWidth) +
-            FRAME_CHARS.right
+          FRAME_CHARS.left +
+          " ".repeat(frameInnerWidth) +
+          FRAME_CHARS.right
         );
 
-        for (let i = 0; i < paddingTop; i++) {
+        for (let i = 0; i < effectivePaddingTop; i++) {
           contentText.prependText(topVerticalPaddingLine);
         }
-        for (let i = 0; i < paddingBottom; i++) {
+        for (let i = 0; i < effectivePaddingBottom; i++) {
           contentText.appendText(bottomVerticalPaddingLine);
         }
 
@@ -570,6 +640,15 @@ export class MarkupFormatter {
     }
   }
 
+  private getBoolAttribute(node: MarkupNode, name: string): boolean {
+    for (const [key, value] of node.attributes) {
+      if (key === name) {
+        return this.parseAttribute(key, value, "boolean") ?? false;
+      }
+    }
+    return false;
+  }
+
   private getListPadding(): number {
     let p = 0;
 
@@ -635,11 +714,11 @@ export class MarkupFormatter {
     const scope: Scope = noInherit
       ? { attributes: { noInherit: true } }
       : {
-          attributes: {
-            ...ScopeTracker.currentScope.attributes,
-            noInherit: false,
-          },
-        };
+        attributes: {
+          ...ScopeTracker.currentScope.attributes,
+          noInherit: false,
+        },
+      };
 
     if (node.tag) {
       scope.tag = node.tag;
@@ -711,6 +790,14 @@ export class MarkupFormatter {
         case "padding-bottom":
         case "padding-left":
         case "padding-right":
+        case "width":
+        case "height":
+        case "min-width":
+        case "min-height":
+        case "hcenter":
+        case "vcenter":
+        case "hend":
+        case "vend":
           continue;
       }
 

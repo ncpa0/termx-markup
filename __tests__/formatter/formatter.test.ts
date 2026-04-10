@@ -1876,6 +1876,199 @@ Other text
       );
       expect(formatted).toMatchSnapshot();
     });
+
+    it("scenario 06", () => {
+      const xml = html`
+        <frame width="16" height="6" vcenter hcenter>
+          <span>Header</span>
+          <br />
+          <span>Content</span>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌──────────────┐
+│              │
+│   Header     │
+│   Content    │
+│              │
+└──────────────┘
+`.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 07", () => {
+      const xml = html`
+        <frame width="16" height="6" vend hend>
+          <span>Header</span>
+          <br />
+          <span>Content</span>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌──────────────┐
+│              │
+│              │
+│       Header │
+│       Content│
+└──────────────┘
+    `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 08", () => {
+      const xml = html`
+        <frame width="16" height="6">
+          <span>Header</span>
+          <br />
+          <span>Content</span>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌──────────────┐
+│Header        │
+│Content       │
+│              │
+│              │
+└──────────────┘
+    `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 09", () => {
+      const xml = html`
+        <frame min-width="11" min-height="4" vcenter hcenter>
+          <span>Header</span>
+          <br />
+          <span>Content</span>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌─────────┐
+│ Header  │
+│ Content │
+└─────────┘
+    `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 10", () => {
+      const xml = html`
+        <frame min-width="11" min-height="5" vcenter hcenter>
+          <span>Content longer than 11</span>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌──────────────────────┐
+│                      │
+│Content longer than 11│
+│                      │
+└──────────────────────┘
+        `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 11", () => {
+      const xml = html`
+        <frame min-width="13" min-height="5" vcenter hcenter>
+          <span>
+            Content<br />
+            taller<br />
+            than<br />
+            5<br />
+            lol
+          </span>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌───────────┐
+│  Content  │
+│  taller   │
+│  than     │
+│  5        │
+│  lol      │
+└───────────┘
+            `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 12", () => {
+      const xml = html`
+        <frame width="6" vcenter>
+          <span>Header</span>
+          <br />
+          <span>Content</span>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌────┐
+│Head│
+│Cont│
+└────┘
+    `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 13", () => {
+      const xml = html`
+        <frame height="5" hcenter>
+          <span>
+            Content<br />
+            taller<br />
+            than<br />
+            5<br />
+            lol
+          </span>
+        </frame>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌───────┐
+│Content│
+│taller │
+│than   │
+└───────┘
+                `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
   });
 
   describe("complex structures scenarios", () => {

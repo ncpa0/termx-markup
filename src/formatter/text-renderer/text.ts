@@ -102,6 +102,10 @@ export class TextRenderer {
       }
     }
 
+    if (this.characters.length > 0 && this.characters.at(-1)?.value !== "\n") {
+      count++;
+    }
+
     return count;
   }
 
@@ -197,6 +201,20 @@ export class TextRenderer {
   concat(text: TextRenderer) {
     this.characters = this.characters.concat(text.characters);
 
+    return this;
+  }
+
+  sliceLines(lines: number) {
+    let currentLine = 1;
+    for (let i = 0; i < this.characters.length; i++) {
+      const char = this.characters[i]!;
+      if (char.value === "\n") {
+        if (lines === currentLine) {
+          return this.slice(0, i);
+        }
+        currentLine += 1;
+      }
+    }
     return this;
   }
 

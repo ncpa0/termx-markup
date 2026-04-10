@@ -110,7 +110,22 @@ Output.print(html`
 - `<ol>` - ordered list, each child element is required to ba a `<li>` tag
 - `<ul>` - unordered list, each child element is required to ba a `<li>` tag, accepts additional attribute `type` (string) which can be of value `circle`, `square` or `bullet` (default is `bullet`)
 - `<pad>` - adds left padding to it's content, accepts attribute `size` (number) which determines the number of spaces to print
-- `<frame>` - adds a border around it's content, accepts attributes `padding`, `padding-left`, `padding-right`, `padding-top`, `padding-bottom`, `padding-horizontal` and `padding-vertical` (number) which determines the number of spaces to print between the border and the content
+- `<frame>` - adds a border around it's content, possible frame attributes: 
+  - `padding="<number>"`
+  - `padding-left="<number>"`
+  - `padding-right="<number>"`
+  - `padding-top="<number>"`
+  - `padding-bottom="<number>"`
+  - `padding-horizontal="<number>"`
+  - `padding-vertical="<number>"`
+  - `height="<number>"`
+  - `max-height="<number>"`
+  - `width="<number>"`
+  - `max-width="<number>"`
+  - `hcenter` (boolean)
+  - `hend` (boolean)
+  - `vcenter` (boolean)
+  - `vend` (boolean)
 
 ## Inline and Block elements
 
