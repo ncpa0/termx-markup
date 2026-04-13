@@ -1,6 +1,6 @@
 {
   "name": "termx-markup",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Markup based text formatting for terminal.",
   "license": "MIT",
   "author": {
@@ -42,7 +42,8 @@
     "test:prettier": "prettier -c ./src && prettier -c ./__tests__",
     "test:tsc": "tsc --noEmit",
     "build": "node ./scripts/build.cjs",
-    "bench": "NODE_PATH=/usr/local/lib/node_modules node ./benchmarks/run-bench.cjs"
+    "bench": "NODE_PATH=/usr/local/lib/node_modules node ./benchmarks/run-bench.cjs",
+    "prepack": "yarn build"
   },
   "devDependencies": {
     "@ncpa0cpl/nodepack": "latest",
