@@ -2069,6 +2069,86 @@ Other text
       );
       expect(formatted).toMatchSnapshot();
     });
+
+    it("scenario 14", () => {
+      const xml = html`<frame> </frame> `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌┐
+└┘
+        `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 15", () => {
+      const xml = html`<frame width="3" height="3"> </frame> `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌─┐
+│ │
+└─┘
+        `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 16", () => {
+      const xml = html`<frame min-width="5"> </frame> `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌───┐
+└───┘
+        `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 17", () => {
+      const xml = html`<frame min-height="5"> </frame> `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌┐
+││
+││
+││
+└┘
+        `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 18", () => {
+      const xml = html`<frame width="8" height="8"> </frame> `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌──────┐
+│      │
+│      │
+│      │
+│      │
+│      │
+│      │
+└──────┘
+      `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
   });
 
   describe("complex structures scenarios", () => {

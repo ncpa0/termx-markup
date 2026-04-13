@@ -123,7 +123,7 @@ export class MarkupFormatter {
     return MarkupFormatter._instance.format(markup);
   }
 
-  constructor(private settings: Settings = GlobalSettings) { }
+  constructor(private settings: Settings = GlobalSettings) {}
 
   format(markup: string | MarkupNode): string {
     const node = typeof markup === "string" ? parseMarkup(markup) : markup;
@@ -456,7 +456,8 @@ export class MarkupFormatter {
           const content = node.content[i]!;
 
           if (typeof content === "string") {
-            contentText.appendText(charGroup.createChars(content));
+            if (content.length > 0)
+              contentText.appendText(charGroup.createChars(content));
           } else {
             this.parse(content, contentText);
           }
@@ -478,9 +479,9 @@ export class MarkupFormatter {
           fixedHeight != null
             ? fixedHeight - 2
             : Math.max(
-              naturalInnerHeight,
-              minHeight != null ? minHeight - 2 : 0
-            );
+                naturalInnerHeight,
+                minHeight != null ? minHeight - 2 : 0
+              );
 
         const extraWidth = Math.max(0, frameInnerWidth - naturalInnerWidth);
         const extraHeight = Math.max(0, frameInnerHeight - naturalInnerHeight);
@@ -488,15 +489,15 @@ export class MarkupFormatter {
         const extraLeft = hcenter
           ? Math.floor(extraWidth / 2)
           : hend
-            ? extraWidth
-            : 0;
+          ? extraWidth
+          : 0;
         const extraRight = extraWidth - extraLeft;
 
         const extraTop = vcenter
           ? Math.floor(extraHeight / 2)
           : vend
-            ? extraHeight
-            : 0;
+          ? extraHeight
+          : 0;
         const extraBottom = extraHeight - extraTop;
 
         const effectivePaddingLeft = paddingLeft + extraLeft;
@@ -510,7 +511,6 @@ export class MarkupFormatter {
           FRAME_CHARS.topRight +
           "\n";
         const bottom =
-          "\n" +
           FRAME_CHARS.bottomLeft +
           FRAME_CHARS.bottom.repeat(frameInnerWidth) +
           FRAME_CHARS.bottomRight;
@@ -551,18 +551,25 @@ export class MarkupFormatter {
 
         contentText.sliceLines(maxLines);
 
+        if (
+          contentText.characters.length > 0 &&
+          contentText.characters.at(-1)?.value !== "\n"
+        ) {
+          contentText.appendText([new Character(charGroup, "\n")]);
+        }
+
         // Vertical padding (original top/bottom) + any extra from vcenter/vend
         const topVerticalPaddingLine = charGroup.createChars(
           FRAME_CHARS.left +
-          " ".repeat(frameInnerWidth) +
-          FRAME_CHARS.right +
-          "\n"
+            " ".repeat(frameInnerWidth) +
+            FRAME_CHARS.right +
+            "\n"
         );
         const bottomVerticalPaddingLine = charGroup.createChars(
-          "\n" +
           FRAME_CHARS.left +
-          " ".repeat(frameInnerWidth) +
-          FRAME_CHARS.right
+            " ".repeat(frameInnerWidth) +
+            FRAME_CHARS.right +
+            "\n"
         );
 
         for (let i = 0; i < effectivePaddingTop; i++) {
@@ -714,11 +721,11 @@ export class MarkupFormatter {
     const scope: Scope = noInherit
       ? { attributes: { noInherit: true } }
       : {
-        attributes: {
-          ...ScopeTracker.currentScope.attributes,
-          noInherit: false,
-        },
-      };
+          attributes: {
+            ...ScopeTracker.currentScope.attributes,
+            noInherit: false,
+          },
+        };
 
     if (node.tag) {
       scope.tag = node.tag;
