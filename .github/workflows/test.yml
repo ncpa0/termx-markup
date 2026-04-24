@@ -14,12 +14,12 @@ jobs:
     name: Run Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           ref: master
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
-          node-version: 18
+          node-version: 20
       - name: Installing dependencies
         run: ./.yarn/releases/yarn-1.22.19.cjs --frozen-lockfile
       - name: Validating TypeScript

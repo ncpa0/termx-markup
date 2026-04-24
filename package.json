@@ -66,5 +66,12 @@
     "strip-ansi": "latest",
     "typescript": "latest"
   },
-  "packageManager": "yarn@1.22.19"
+  "packageManager": "yarn@1.22.19",
+  "files": [
+    "dist",
+    "LICENSE",
+    "CHANGELOG.md",
+    "README.md",
+    "package.json"
+  ]
 }
