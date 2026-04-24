@@ -1,5 +1,6 @@
 import { TermxBgColors } from "../../colors/termx-bg-color";
 import { TermxFontColors } from "../../colors/termx-font-colors";
+import { terminalWidth } from "../../terminal-width";
 import type { Styles } from "./styles";
 
 const escape = "\u001b";
@@ -83,14 +84,17 @@ export class CharacterGroup {
 }
 
 export class Character {
-  constructor(public group: CharacterGroup, public value: string) {}
+  readonly width: number;
+  constructor(public group: CharacterGroup, public value: string) {
+    this.width = terminalWidth(value);
+  }
 }
 
 export class TextRenderer {
   characters: Character[] = [];
 
   get length(): number {
-    return this.characters.length;
+    return TextRenderer.charsLen(this.characters);
   }
 
   get lines(): number {
@@ -128,7 +132,7 @@ export class TextRenderer {
         max = Math.max(max, current);
         current = 0;
       } else {
-        current++;
+        current += char.width;
       }
     }
 
@@ -247,6 +251,38 @@ export class TextRenderer {
     }
 
     return result + `${Unset}`;
+  }
+
+  static charsLen(chars: Character[]) {
+    let totalWidth = 0;
+
+    for (let i = 0; i < chars.length; i++) {
+      const char = chars[i]!;
+      totalWidth += char.width;
+    }
+
+    return totalWidth;
+  }
+
+  static charsTrimEnd(chars: Character[], maxWidth: number) {
+    const slice: Character[] = [];
+    let width = 0;
+    let i = 0;
+
+    while (width < maxWidth) {
+      const char = chars[i++];
+
+      if (!char) break;
+
+      width += char.width;
+      if (width > maxWidth) {
+        break;
+      }
+
+      slice.push(char);
+    }
+
+    return slice;
   }
 
   /** Used to lookup the contents in the debugger. */

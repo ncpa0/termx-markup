@@ -3,6 +3,11 @@ import { html, raw } from "./html-tag";
 import { parseMarkup } from "./markup-parser";
 import { Output, OutputBuffer } from "./output";
 import { Settings } from "./settings";
+import {
+  terminalWidth,
+  wrapTerminalLines,
+  trimStartToWidth,
+} from "./terminal-width";
 
 export type { MarkupNode } from "./markup-parser";
 export {
@@ -13,6 +18,9 @@ export {
   html,
   parseMarkup,
   raw,
+  terminalWidth,
+  wrapTerminalLines,
+  trimStartToWidth,
 };
 
 export default {
@@ -23,4 +31,7 @@ export default {
   OutputBuffer,
   parseMarkup,
   Settings,
+  terminalWidth,
+  wrapTerminalLines,
+  trimStartToWidth,
 };

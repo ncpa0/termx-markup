@@ -153,6 +153,18 @@ exports[`MarkupFormatter <frame> tag scenario 18 1`] = `
 └──────┘[0m"
 `;
 
+exports[`MarkupFormatter <frame> tag scenario 19 1`] = `
+"[0m┌──────┐
+│[こん │
+└──────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 20 1`] = `
+"[0m┌───────┐
+│[こんに│
+└───────┘[0m"
+`;
+
 exports[`MarkupFormatter <ol> tag should correctly render list with numbered indexes 1`] = `
 "[0m1. [0m[31mRed[0m
 2. [0m[32mGreen[0m

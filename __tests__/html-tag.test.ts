@@ -16,4 +16,12 @@ describe("html", () => {
       "<div>&lt;script&gt;alert('hello')&lt;/script&gt;\\\\</div>"
     );
   });
+
+  it("should not escape if sanitization is disabled", () => {
+    html.setSanitizeParams(false);
+    expect(html`<div>${"<span>hello</span>"}</div>`).toBe(
+      "<div><span>hello</span></div>"
+    );
+    html.setSanitizeParams(true);
+  });
 });

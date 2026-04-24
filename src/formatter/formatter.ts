@@ -521,14 +521,16 @@ export class MarkupFormatter {
         contentText.mapLines((line, endline) => {
           // Trim to fit if a fixed width is set and this line is too long
           const fittedLine =
-            fixedWidth != null && line.length > maxContentWidth
-              ? line.slice(0, maxContentWidth)
+            fixedWidth != null && TextRenderer.charsLen(line) > maxContentWidth
+              ? TextRenderer.charsTrimEnd(line, maxContentWidth)
               : line;
 
           const rightPad = Math.max(
             0,
             effectivePaddingRight,
-            frameInnerWidth - fittedLine.length - effectivePaddingLeft
+            frameInnerWidth -
+              TextRenderer.charsLen(fittedLine) -
+              effectivePaddingLeft
           );
 
           const newline = [

@@ -2149,6 +2149,36 @@ Other text
       );
       expect(formatted).toMatchSnapshot();
     });
+
+    it("scenario 19", () => {
+      const xml = html`<frame width="8">[こんにちは]</frame> `; // effective width of 12
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌──────┐
+│[こん │
+└──────┘
+        `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 20", () => {
+      const xml = html`<frame width="9">[こんにちは]</frame> `; // effective width of 12
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌───────┐
+│[こんに│
+└───────┘
+        `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
   });
 
   describe("complex structures scenarios", () => {
