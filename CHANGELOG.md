@@ -1,3 +1,19 @@
+## 2.1.3 (April 24, 2026)
+
+### Bug Fixes
+
+- #### fix: character width detection for multi-column characters
+  
+  Fixed the issue: the text length would not be correctly detected if it contained characters that in the terminal are displayed in multiple columns (emojis, kanja etc.) This could break the frame element.
+
+### Features
+
+- #### feat: html function helper sanitization control
+
+  Parameter sanitization in `html` tag template function can now be disabled, or a new version with different behavior can be created via `html.new()`.
+
+  Sanitization can now be done manually via `html.sanitize()`.
+
 ## 2.0.2 (September 4, 2023)
 
 ### Bug Fixes
