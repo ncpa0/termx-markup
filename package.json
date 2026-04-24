@@ -22,7 +22,7 @@
     "string"
   ],
   "repository": {
-    "url": "https://github.com/ncpa0cpl/termx-markup"
+    "url": "https://github.com/ncpa0/termx-markup"
   },
   "main": "./dist/legacy/index.js",
   "types": "./dist/types/index.d.ts",
