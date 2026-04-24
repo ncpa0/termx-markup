@@ -176,7 +176,8 @@ function wcwidth(cp: number): 0 | 1 | 2 {
   if (cp === 0x2029) return 0;
   if (cp === 0xfeff) return 0; // BOM / ZWNBSP
   if (cp >= 0xfe00 && cp <= 0xfe0f) return 0; // variation selectors
-  if (cp >= 0xe0100 && cp <= 0xe01ef) return 0; // variation selectors supplement
+  // variation selectors supplement
+  if (cp >= 0xe0100 && cp <= 0xe01ef) return 0;
 
   // Soft hyphen
   if (cp === 0x00ad) return 0;
@@ -217,7 +218,8 @@ function wcwidth(cp: number): 0 | 1 | 2 {
  * characters correctly.
  */
 export function trimStartToWidth(str: string, maxWidth: number): string {
-  const runes = [...str]; // Split by Unicode codepoints (handles surrogate pairs)
+  // Split by Unicode codepoints (handles surrogate pairs)
+  const runes = [...str];
 
   let totalWidth = terminalWidth(str);
   if (totalWidth <= maxWidth) return str;
@@ -227,7 +229,7 @@ export function trimStartToWidth(str: string, maxWidth: number): string {
   while (i < runes.length && totalWidth > maxWidth) {
     const cp = runes[i]!.codePointAt(0)!;
 
-    // ANSI escape sequence — skip without subtracting width (they're zero-width)
+    // ANSI escape sequence skip without subtracting width (they're zero-width)
     if (cp === 0x1b) {
       i++;
       if (i >= runes.length) break;

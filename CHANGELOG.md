@@ -3,7 +3,7 @@
 ### Bug Fixes
 
 - #### fix: character width detection for multi-column characters
-  
+
   Fixed the issue: the text length would not be correctly detected if it contained characters that in the terminal are displayed in multiple columns (emojis, kanja etc.) This could break the frame element.
 
 ### Features
@@ -21,7 +21,7 @@
 - #### fix: stringification of arguments provided to the `html` tag template ([#8](https://github.com/ncpa0cpl/termx-markup/pull/8))
 
   stringifying arguments of the `html` tag template was previously done by calling `.toString()` method on each arg, this was causing errors for cases where an argument was an `undefined` value.
-  
+
   Instead the stringification is now done with the [String() constructor function](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/String), which can properly handle undefined values.
 
 ## 2.0.1 (August 10, 2023)
