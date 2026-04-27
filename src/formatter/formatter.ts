@@ -1,6 +1,5 @@
 import { TermxBgColors } from "../colors/termx-bg-color";
 import { TermxFontColors } from "../colors/termx-font-colors";
-import { desanitizeHtml } from "../html-tag";
 import type { MarkupNode } from "../markup-parser";
 import { parseMarkup } from "../markup-parser";
 import type { Settings } from "../settings";
@@ -127,11 +126,12 @@ export class MarkupFormatter {
 
   format(markup: string | MarkupNode): string {
     const node = typeof markup === "string" ? parseMarkup(markup) : markup;
-    const text = this.parse(node, new TextRenderer());
+    this.normalizeNode(node);
+    const text = this.putInto(node, new TextRenderer());
 
     text.removeTrailingNewLine();
 
-    return desanitizeHtml(text.render());
+    return text.render();
   }
 
   private handleError(message: string) {
@@ -162,8 +162,40 @@ export class MarkupFormatter {
     return result;
   }
 
-  private normalizeNode(node: MarkupNode) {
+  private getPreNodeLastLine(node: MarkupNode, initLine: string): string {
+    let currentLine = initLine;
+
+    if (
+      node.tag === "br" ||
+      node.tag == "li" ||
+      BLOCK_NODE_TYPES.includes(node.tag)
+    ) {
+      return "";
+    }
+
+    for (let i = 0; i < node.content.length; i++) {
+      const content = node.content[i]!;
+
+      if (typeof content === "string") {
+        const lastEolIdx = content.lastIndexOf("\n");
+        if (lastEolIdx === -1) {
+          currentLine += content;
+        } else {
+          currentLine = content.substring(lastEolIdx + 1);
+        }
+      } else {
+        currentLine = this.getPreNodeLastLine(content, currentLine);
+      }
+    }
+
+    return currentLine;
+  }
+
+  private normalizeNode(node: MarkupNode, initLine = ""): string {
+    let currentLine = initLine;
+
     if (node.tag !== "pre") {
+      // remove unnecessary whitespace
       for (let i = 0; i < node.content.length; i++) {
         const content = node.content[i]!;
 
@@ -175,18 +207,19 @@ export class MarkupFormatter {
           const prevTag = getNodeType(node.content[i - 1]);
           const nextTag = getNodeType(node.content[i + 1]);
 
-          const isStartOfLine =
-            prevNodeDisplayType === "block" || prevTag === "br" || i === 0;
+          const isStartOfLine = currentLine.trim() === "";
           const isEndOfLine =
             nextNodeDisplayType === "block" ||
             nextTag === "br" ||
             i === node.content.length - 1;
 
           if (trimmed.length === 0) {
-            const shouldKeepWhitespace = !isStartOfLine && !isEndOfLine;
+            const shouldKeepWhitespace =
+              !isStartOfLine && !isEndOfLine && currentLine.at(-1) != " ";
 
             if (shouldKeepWhitespace && prevTag !== "s") {
               node.content[i] = " ";
+              currentLine += " ";
             } else {
               // Remove the empty node
               node.content = node.content
@@ -198,6 +231,7 @@ export class MarkupFormatter {
             if (
               !isStartOfLine &&
               singleLined[0] === " " &&
+              currentLine.at(-1) != " " &&
               prevNodeDisplayType === "inline"
             ) {
               trimmed = " " + trimmed;
@@ -205,12 +239,18 @@ export class MarkupFormatter {
 
             if (!isEndOfLine && singleLined[singleLined.length - 1] === " ") {
               node.content[i] = trimmed + " ";
+              currentLine += trimmed + " ";
             } else {
               node.content[i] = trimmed;
+              currentLine += trimmed;
             }
           }
+        } else {
+          currentLine = this.normalizeNode(content, currentLine);
         }
       }
+    } else {
+      currentLine = this.getPreNodeLastLine(node, currentLine);
     }
 
     for (let i = 0; i < node.content.length; i++) {
@@ -234,13 +274,27 @@ export class MarkupFormatter {
         }
       }
     }
+
+    if (
+      node.tag === "br" ||
+      node.tag === "li" ||
+      BLOCK_NODE_TYPES.includes(node.tag)
+    ) {
+      currentLine = "";
+    }
+
+    return currentLine;
   }
 
-  private parse(node: MarkupNode, result: TextRenderer): TextRenderer {
+  /**
+   * Takes a MarkupNode and puts all of its contents into the
+   * TextRenderer
+   */
+  private putInto(node: MarkupNode, result: TextRenderer): TextRenderer {
     switch (node.tag) {
       case "pre": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeNode(node);
+        // this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -265,7 +319,7 @@ export class MarkupFormatter {
       case "line":
       case "span": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeNode(node);
+        // this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -277,7 +331,7 @@ export class MarkupFormatter {
           if (typeof content === "string") {
             result.appendText(charGroup.createChars(content));
           } else {
-            this.parse(content, result);
+            this.putInto(content, result);
           }
         }
 
@@ -291,7 +345,7 @@ export class MarkupFormatter {
         const padding = this.getListPadding();
 
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeNode(node);
+        // this.normalizeNode(node);
 
         const unstyledCharGroup = new CharacterGroup({
           bg: ScopeTracker.currentScope.attributes.bg,
@@ -325,7 +379,7 @@ export class MarkupFormatter {
             i + 1
           );
 
-          const subText = this.parse(content, new TextRenderer());
+          const subText = this.putInto(content, new TextRenderer());
 
           subText.prependAllLines(
             unstyledCharGroup.createChars(" ".repeat(contentPad))
@@ -350,7 +404,7 @@ export class MarkupFormatter {
       }
       case "li": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeNode(node);
+        // this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -366,7 +420,7 @@ export class MarkupFormatter {
           if (typeof content === "string") {
             result.appendText(charGroup.createChars(content));
           } else {
-            this.parse(content, result);
+            this.putInto(content, result);
           }
         }
 
@@ -376,7 +430,7 @@ export class MarkupFormatter {
       }
       case "pad": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeNode(node);
+        // this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -392,7 +446,7 @@ export class MarkupFormatter {
           if (typeof content === "string") {
             contentText.appendText(charGroup.createChars(content));
           } else {
-            this.parse(content, contentText);
+            this.putInto(content, contentText);
           }
         }
 
@@ -407,7 +461,7 @@ export class MarkupFormatter {
       }
       case "frame": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeNode(node);
+        // this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -459,7 +513,7 @@ export class MarkupFormatter {
             if (content.length > 0)
               contentText.appendText(charGroup.createChars(content));
           } else {
-            this.parse(content, contentText);
+            this.putInto(content, contentText);
           }
         }
 
@@ -603,7 +657,7 @@ export class MarkupFormatter {
       }
       case "s": {
         ScopeTracker.enterScope(this.createScope(node));
-        this.normalizeNode(node);
+        // this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -616,7 +670,7 @@ export class MarkupFormatter {
         return result;
       }
       case "": {
-        this.normalizeNode(node);
+        // this.normalizeNode(node);
 
         const charGroup =
           result.lastGroup ??
@@ -628,7 +682,7 @@ export class MarkupFormatter {
           if (typeof content === "string") {
             result.appendText(charGroup.createChars(content));
           } else {
-            this.parse(content, result);
+            this.putInto(content, result);
           }
         }
 

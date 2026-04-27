@@ -165,6 +165,20 @@ exports[`MarkupFormatter <frame> tag scenario 20 1`] = `
 └───────┘[0m"
 `;
 
+exports[`MarkupFormatter <frame> tag scenario 21 1`] = `
+"[0m┌─────────────┐
+│< not-a-tag >│
+└─────────────┘[0m"
+`;
+
+exports[`MarkupFormatter <frame> tag scenario 22 1`] = `
+"[0m┌─────────────┐
+│First Line   │
+│             │
+│Second Line  │
+└─────────────┘[0m"
+`;
+
 exports[`MarkupFormatter <ol> tag should correctly render list with numbered indexes 1`] = `
 "[0m1. [0m[31mRed[0m
 2. [0m[32mGreen[0m
@@ -387,11 +401,11 @@ exports[`MarkupFormatter should correctly format the xml scenario 03 1`] = `
 [0mNormal[0m"
 `;
 
-exports[`MarkupFormatter should correctly format the xml scenario 04 1`] = `"[0m[31m[1m[3m[4m Red [0m[1m[3m[4m [0m[32m[1m[3m[4m Green [0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 04 1`] = `"[0m[31m[1m[3m[4m Red [0m[32m[1m[3m[4m Green [0m"`;
 
 exports[`MarkupFormatter should correctly format the xml scenario 05 1`] = `"[0m[33m[1m[4m[5mLorem [0m[34m[1m[4m[5mipsum [0m[32m[1m[2m[4m[5mdolor [0m[32m[1m[2m[4m[5m[7msit[0m[32m[1m[2m[4m[5m amet[0m[34m[1m[4m[5m consectetur[0m[33m[1m[4m[5m adipiscing[0m"`;
 
-exports[`MarkupFormatter should correctly format the xml scenario 06 1`] = `"[0m[38;2;137;245;209mGreen[0m[38;2;245;170;66m   [0m[34mBlue[0m[38;2;245;170;66m   Orange[0m"`;
+exports[`MarkupFormatter should correctly format the xml scenario 06 1`] = `"[0m[38;2;137;245;209mGreen[0m[38;2;245;170;66m  [0m[34mBlue[0m[38;2;245;170;66m  Orange[0m"`;
 
 exports[`MarkupFormatter should correctly format the xml scenario 07 1`] = `"[0m[33m[4mLorem [0m[34m[9mipsum [0m[32m[2m[9mdolor[0m[34m[9m sit[0m[33m[4m amet[0m"`;
 

@@ -1,5 +1,6 @@
 import { TermxBgColors } from "../../colors/termx-bg-color";
 import { TermxFontColors } from "../../colors/termx-font-colors";
+import { desanitizeHtml } from "../../html-tag";
 import { terminalWidth } from "../../terminal-width";
 import type { Styles } from "./styles";
 
@@ -61,6 +62,8 @@ export class CharacterGroup {
   constructor(public readonly styles: Styles) {}
 
   createChars(value: string): Character[] {
+    value = desanitizeHtml(value);
+
     const chars: Character[] = [];
 
     for (let i = 0; i < value.length; i++) {

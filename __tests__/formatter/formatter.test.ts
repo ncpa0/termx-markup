@@ -113,7 +113,7 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
-      expect(formatted).toMatchAnsiString(" Red   Green ");
+      expect(formatted).toMatchAnsiString(" Red  Green ");
       expect(formatted).toContainAnsiStringWithStyles(" Red ", {
         color: "red",
         bold: true,
@@ -214,14 +214,14 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
-      expect(formatted).toMatchAnsiString("Green   Blue   Orange");
+      expect(formatted).toMatchAnsiString("Green  Blue  Orange");
       expect(formatted).toContainAnsiStringWithStyles("Green", {
         color: "rgb(137, 245, 209)",
       });
       expect(formatted).toContainAnsiStringWithStyles("Blue", {
         color: "blue",
       });
-      expect(formatted).toContainAnsiStringWithStyles("   Orange", {
+      expect(formatted).toContainAnsiStringWithStyles("  Orange", {
         color: "#f5aa42",
       });
       expect(formatted).toMatchSnapshot();
@@ -2198,6 +2198,44 @@ Other text
 ┌───────┐
 │[こんに│
 └───────┘
+        `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 21", () => {
+      const xml = html`<frame width="15"> &lt; not-a-tag &gt; </frame> `; // effective width of 12
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌─────────────┐
+│< not-a-tag >│
+└─────────────┘
+        `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 22", () => {
+      const xml = html`<frame width="15">
+        <line>First Line</line> <br />
+        <span></span>
+        <span>
+          <line>Second Line</line>
+        </span>
+      </frame> `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌─────────────┐
+│First Line   │
+│             │
+│Second Line  │
+└─────────────┘
         `.trim()
       );
       expect(formatted).toMatchSnapshot();
