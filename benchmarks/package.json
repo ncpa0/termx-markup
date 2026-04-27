@@ -1,0 +1,8 @@
+{
+  "name": "termx-markup-benchmark",
+  "dependencies": {
+    "benchmark": "^2.1.4",
+    "fast-xml-parser": "^5.7.2",
+    "xml2js": "^0.6.2"
+  }
+}
