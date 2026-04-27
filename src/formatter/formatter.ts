@@ -157,7 +157,7 @@ export class MarkupFormatter {
       result += lines[i]!.trim() + " ";
     }
 
-    result += lines[lines.length - 1]!.trim();
+    result += lines[lines.length - 1];
 
     return result;
   }

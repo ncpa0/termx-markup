@@ -278,9 +278,7 @@ describe("MarkupFormatter", () => {
     it("scenario 08", () => {
       const xml = html`
         <span bold color="yellow">
-          [
-          <span color="none"> Hello world </span>
-          ]
+          [ <span color="none"> Hello world </span> ]
         </span>
       `;
 
@@ -296,6 +294,31 @@ describe("MarkupFormatter", () => {
         bold: true,
       });
       expect(formatted).toContainAnsiStringWithStyles(" ]", {
+        color: "yellow",
+        bold: true,
+      });
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 08.1", () => {
+      const xml = html`
+        <span bold color="yellow">
+          [<span color="none">Hello world</span>]
+        </span>
+      `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString("[Hello world]");
+      expect(formatted).toContainAnsiStringWithStyles("[", {
+        color: "yellow",
+        bold: true,
+      });
+      expect(formatted).toContainAnsiStringWithStyles("Hello world", {
+        color: "none",
+        bold: true,
+      });
+      expect(formatted).toContainAnsiStringWithStyles("]", {
         color: "yellow",
         bold: true,
       });
