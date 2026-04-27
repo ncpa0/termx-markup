@@ -43,7 +43,8 @@
     "test:tsc": "tsc --noEmit",
     "build": "node ./scripts/build.cjs",
     "bench": "NODE_PATH=/usr/local/lib/node_modules node ./benchmarks/run-bench.cjs",
-    "prepack": "yarn build"
+    "prepack": "yarn build",
+    "prepare": "husky install"
   },
   "devDependencies": {
     "@ncpa0cpl/nodepack": "latest",
