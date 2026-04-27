@@ -397,6 +397,8 @@ exports[`MarkupFormatter should correctly format the xml scenario 07 1`] = `"[0
 
 exports[`MarkupFormatter should correctly format the xml scenario 08 1`] = `"[0m[33m[1m[ [0m[1mHello world[0m[33m[1m ][0m"`;
 
+exports[`MarkupFormatter should correctly format the xml scenario 08.1 1`] = `"[0m[33m[1m[[0m[1mHello world[0m[33m[1m][0m"`;
+
 exports[`MarkupFormatter should correctly format the xml scenario 09 1`] = `
 "[0m[33m[1m[[0m[1mLorem ipsum[0m[33m[1m]
 [[0m[1mdolor sit amet[0m[33m[1m][0m"
