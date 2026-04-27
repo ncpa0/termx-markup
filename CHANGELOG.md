@@ -1,3 +1,28 @@
+## 2.1.4 (April 27, 2026)
+
+### Bug Fixes
+
+- #### fix: missing whitespace in the output for text node + whitespace + tag node with text ([#9](https://github.com/ncpa0/termx-markup/pull/9))
+
+  Previously if a raw text ending with a whitespace was followed with a tag the whitespace between them would get dropped.
+  
+  Example
+  
+  Input:
+  ```html
+  <span> Lorem <span> Ipsum </span></span>
+  ```
+  
+  Old Output:
+  ```
+  LoremIpsum
+  ```
+  
+  New Output:
+  ```
+  Lorem Ipsum
+  ```
+
 ## 2.1.3 (April 24, 2026)
 
 ### Bug Fixes
