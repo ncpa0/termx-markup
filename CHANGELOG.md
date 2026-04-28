@@ -1,3 +1,57 @@
+## 2.1.5 (April 28, 2026)
+
+### Bug Fixes
+
+- #### fix: incorrect line length detection if markup contained html entities, unexpected spaces ([#10](https://github.com/ncpa0/termx-markup/pull/10))
+
+  if the formatted text contained html entities like `&lt;` and `&gt;` they would be counted as 4 characters even though those are later replaced with `<` and `>` characters respectively.
+  
+  this fixes that by performing replacement earlier, before length detection happens.
+  
+  Input:
+  ```html
+  <frame width="12"> &lt;!&gt; </frame>
+  ```
+  
+  Old output:
+  ```
+  ┌──────────┐
+  │<!> │
+  └──────────┘
+  ```
+  
+  New Output:
+  ```
+  ┌──────────┐
+  │<!>       │
+  └──────────┘
+  ```
+  
+  in some cases when an empty inline tag was followed by a whitespace followed by a non empty inline tag starting with whitespace, that line after formatting would start with a single whitespace.
+  
+  Input:
+  ```html
+  <span>
+    <line>First Line</line>
+    <span><span>
+    <span>
+      <line>Second Line</line>
+    </span>
+  </span>
+  ```
+  
+  Old Output:
+  ```
+  First Line
+   Second Line
+  ```
+  
+  New Output:
+  ```
+  First Line
+  Second Line
+  ```
+
 ## 2.1.4 (April 27, 2026)
 
 ### Bug Fixes
