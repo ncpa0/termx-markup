@@ -7,6 +7,7 @@ import {
   terminalWidth,
   wrapTerminalLines,
   trimStartToWidth,
+  trimToWidth,
 } from "./terminal-width";
 
 export type { MarkupNode } from "./markup-parser";
@@ -20,6 +21,7 @@ export {
   raw,
   terminalWidth,
   wrapTerminalLines,
+  trimToWidth,
   trimStartToWidth,
 };
 
@@ -33,5 +35,6 @@ export default {
   Settings,
   terminalWidth,
   wrapTerminalLines,
+  trimToWidth,
   trimStartToWidth,
 };

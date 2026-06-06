@@ -218,7 +218,6 @@ function wcwidth(cp: number): 0 | 1 | 2 {
  * characters correctly.
  */
 export function trimStartToWidth(str: string, maxWidth: number): string {
-  // Split by Unicode codepoints (handles surrogate pairs)
   const runes = [...str];
 
   let totalWidth = terminalWidth(str);
@@ -226,72 +225,134 @@ export function trimStartToWidth(str: string, maxWidth: number): string {
 
   let i = 0;
 
+  // ── ANSI state tracking ────────────────────────────────────────────────
+  const activeSGR: string[] = [];
+
   while (i < runes.length && totalWidth > maxWidth) {
     const cp = runes[i]!.codePointAt(0)!;
 
-    // ANSI escape sequence skip without subtracting width (they're zero-width)
+    // ── ANSI escape sequence handling ────────────────────────────────────
     if (cp === 0x1b) {
-      i++;
+      let seq = runes[i++]!;
       if (i >= runes.length) break;
-      const next = runes[i]!.codePointAt(0)!;
 
+      const next = runes[i]!.codePointAt(0)!;
+      seq += runes[i];
+
+      // CSI
       if (next === 0x5b) {
-        // CSI
         i++;
         while (i < runes.length) {
-          const c = runes[i++]!.codePointAt(0)!;
-          if (c >= 0x40 && c <= 0x7e) break;
+          const c = runes[i++]!;
+          seq += c;
+          const code = c.codePointAt(0)!;
+
+          if (code >= 0x40 && code <= 0x7e) {
+            // SGR: ESC [ ... m
+            if (code === 0x6d) {
+              // "m"
+              if (seq === "\x1b[0m") {
+                activeSGR.length = 0; // reset styles
+              } else {
+                activeSGR.push(seq);
+              }
+            }
+            break;
+          }
         }
       } else if (next === 0x5d) {
         // OSC
         i++;
         while (i < runes.length) {
-          const c = runes[i++]!.codePointAt(0)!;
-          if (c === 0x07) break;
+          const c = runes[i++]!;
+          seq += c;
+          const code = c.codePointAt(0)!;
+          if (code === 0x07) break;
           if (
-            c === 0x1b &&
+            code === 0x1b &&
             i < runes.length &&
             runes[i]!.codePointAt(0) === 0x5c
           ) {
-            i++;
+            seq += runes[i++]!;
             break;
           }
         }
-      } else if (
-        next === 0x50 ||
-        next === 0x58 ||
-        next === 0x5e ||
-        next === 0x5f
-      ) {
-        // DCS/PM/APC
-        i++;
-        while (i < runes.length) {
-          const c = runes[i++]!.codePointAt(0)!;
-          if (
-            c === 0x1b &&
-            i < runes.length &&
-            runes[i]!.codePointAt(0) === 0x5c
-          ) {
-            i++;
-            break;
-          }
-        }
-      } else if (next === 0x4e || next === 0x4f) {
-        // SS2/SS3
-        i += 2;
       } else {
         i++;
       }
+
       continue;
     }
 
-    // Visible character — subtract its width and advance
+    // ── visible char ──────────────────────────────────────────────────────
     const charWidth = terminalWidth(runes[i]!);
     totalWidth -= charWidth;
     i++;
   }
 
-  return runes.slice(i).join("");
+  const trimmed = runes.slice(i).join("");
+
+  // prepend active ANSI state so formatting continues correctly
+  return activeSGR.join("") + trimmed;
+}
+
+export function trimToWidth(str: string, maxWidth: number): string {
+  const runes = [...str];
+
+  const totalWidth = terminalWidth(str);
+  if (totalWidth <= maxWidth) return str;
+
+  const tokens: { text: string; width: number }[] = [];
+
+  let i = 0;
+
+  // ── tokenize string into ANSI-safe units ───────────────────────────────
+  while (i < runes.length) {
+    const cp = runes[i]!.codePointAt(0)!;
+
+    // ANSI escape sequence
+    if (cp === 0x1b) {
+      let seq = runes[i++]!;
+      if (i >= runes.length) {
+        tokens.push({ text: seq, width: 0 });
+        break;
+      }
+
+      const next = runes[i]!.codePointAt(0)!;
+      seq += runes[i];
+
+      if (next === 0x5b) {
+        i++;
+        while (i < runes.length) {
+          const c = runes[i++]!;
+          seq += c;
+          const code = c.codePointAt(0)!;
+          if (code >= 0x40 && code <= 0x7e) break;
+        }
+      } else {
+        i++;
+      }
+
+      tokens.push({ text: seq, width: 0 });
+      continue;
+    }
+
+    // normal char
+    const char = runes[i]!;
+    const w = terminalWidth(char);
+    tokens.push({ text: char, width: w });
+    i++;
+  }
+
+  // ── trim from end ──────────────────────────────────────────────────────
+  let width = totalWidth;
+
+  while (tokens.length && width > maxWidth) {
+    const t = tokens.pop()!;
+    width -= t.width;
+  }
+
+  return tokens.map((t) => t.text).join("");
 }
 
 /**
