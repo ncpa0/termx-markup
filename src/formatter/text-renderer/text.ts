@@ -245,6 +245,12 @@ export class TextRenderer {
     for (let i = 0; i < this.characters.length; i++) {
       const character = this.characters[i]!;
 
+      if (character.value === "\n") {
+        result += Unset + character.value;
+        group = undefined;
+        continue;
+      }
+
       if (!group || !group.isEqual(character.group)) {
         group = character.group;
         result += group.renderStyles();
@@ -253,7 +259,7 @@ export class TextRenderer {
       result += character.value;
     }
 
-    return result + `${Unset}`;
+    return result + Unset;
   }
 
   static charsLen(chars: Character[]) {

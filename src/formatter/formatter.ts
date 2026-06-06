@@ -246,7 +246,9 @@ export class MarkupFormatter {
             }
           }
         } else {
-          currentLine = this.normalizeNode(content, currentLine);
+          currentLine = this.normalizeNode(content, currentLine)
+            // trim, so that whitespace ending is ignored
+            .trimEnd();
         }
       }
     } else {
@@ -319,7 +321,6 @@ export class MarkupFormatter {
       case "line":
       case "span": {
         ScopeTracker.enterScope(this.createScope(node));
-        // this.normalizeNode(node);
 
         const charGroup = new CharacterGroup(
           ScopeTracker.currentScope.attributes
@@ -799,8 +800,8 @@ export class MarkupFormatter {
           continue;
         case "bg":
           attributes.bg = this.parseAttribute("bg", value, "string");
-          if (attributes.color === "none") {
-            attributes.color = undefined;
+          if (attributes.bg === "none") {
+            attributes.bg = undefined;
           }
           continue;
         case "bold":
@@ -907,10 +908,7 @@ export class MarkupFormatter {
         if (value === "true" || value === "1") {
           return true;
         }
-        if (value === "false" || value === "0") {
-          return false;
-        }
-        break;
+        return false;
     }
 
     this.handleError(

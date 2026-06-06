@@ -4,7 +4,11 @@ declare global {
   namespace jest {
     interface Matchers<R> {
       toMatchAnsiString(expected: string): R;
-      toContainAnsiStringWithStyles(expected: string, styles: Styles): R;
+      toContainAnsiStringWithStyles(
+        expected: string,
+        styles: Styles,
+        offset?: number
+      ): R;
     }
   }
 }

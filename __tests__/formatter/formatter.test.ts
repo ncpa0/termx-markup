@@ -113,7 +113,7 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
-      expect(formatted).toMatchAnsiString(" Red  Green ");
+      expect(formatted).toMatchAnsiString(" Red   Green ");
       expect(formatted).toContainAnsiStringWithStyles(" Red ", {
         color: "red",
         bold: true,
@@ -214,15 +214,15 @@ describe("MarkupFormatter", () => {
 
       const formatted = MarkupFormatter.format(xml);
 
-      expect(formatted).toMatchAnsiString("Green  Blue  Orange");
+      expect(formatted).toMatchAnsiString("Green   Blue   Orange");
       expect(formatted).toContainAnsiStringWithStyles("Green", {
         color: "rgb(137, 245, 209)",
       });
       expect(formatted).toContainAnsiStringWithStyles("Blue", {
         color: "blue",
       });
-      expect(formatted).toContainAnsiStringWithStyles("  Orange", {
-        color: "#f5aa42",
+      expect(formatted).toContainAnsiStringWithStyles("   Orange", {
+        color: "rgb(245, 170, 66)",
       });
       expect(formatted).toMatchSnapshot();
     });
@@ -379,7 +379,10 @@ Other text
 `.trim()
       );
 
-      expect(formatted).toContainAnsiStringWithStyles("┌───────┐\n│", {
+      expect(formatted).toContainAnsiStringWithStyles("┌───────┐", {
+        color: "yellow",
+      });
+      expect(formatted).toContainAnsiStringWithStyles("│", {
         color: "yellow",
       });
       expect(formatted).toContainAnsiStringWithStyles("Header", {
@@ -388,10 +391,7 @@ Other text
       expect(formatted).toContainAnsiStringWithStyles("Content", {
         color: "green",
       });
-      expect(formatted).toContainAnsiStringWithStyles(" │\n│", {
-        color: "yellow",
-      });
-      expect(formatted).toContainAnsiStringWithStyles("│\n└───────┘", {
+      expect(formatted).toContainAnsiStringWithStyles("└───────┘", {
         color: "yellow",
       });
       expect(formatted).toContainAnsiStringWithStyles("Other text", {
@@ -1275,125 +1275,113 @@ Some text`);
      12. lightMagenta
     `.trim()
       );
-      expect(formattedXml).toContainAnsiStringWithStyles("1.", {
+      expect(formattedXml).toContainAnsiStringWithStyles("1. Element 1", {
         color: "none",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
-      expect(formattedXml).toContainAnsiStringWithStyles("Element 1", {
+      expect(formattedXml).toContainAnsiStringWithStyles("2. Element 2", {
         color: "none",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
-      expect(formattedXml).toContainAnsiStringWithStyles("2.", {
+      expect(formattedXml).toContainAnsiStringWithStyles("3. Colors:", {
         color: "none",
-        bg: "#acf64c",
-      });
-      expect(formattedXml).toContainAnsiStringWithStyles("Element 2", {
-        color: "none",
-        bg: "#acf64c",
-      });
-      expect(formattedXml).toContainAnsiStringWithStyles("3.", {
-        color: "none",
-        bg: "#acf64c",
-      });
-      expect(formattedXml).toContainAnsiStringWithStyles("Colors:", {
-        color: "none",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("1.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("red", {
         color: "red",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("2.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("green", {
         color: "green",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("3.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("blue", {
         color: "blue",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("4.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("yellow", {
         color: "yellow",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("5.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("magenta", {
         color: "magenta",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("6.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("cyan", {
         color: "cyan",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("7.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("white", {
         color: "white",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("8.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("lightRed", {
         color: "lightRed",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("9.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("lightGreen", {
         color: "lightGreen",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("10.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("lightYellow", {
         color: "lightYellow",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("11.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("lightBlue", {
         color: "lightBlue",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("12.", {
         color: "rgb(0, 0, 0)",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toContainAnsiStringWithStyles("lightMagenta", {
         color: "lightMagenta",
-        bg: "#acf64c",
+        bg: "rgb(172, 246, 76)",
       });
       expect(formattedXml).toMatchSnapshot();
     });
@@ -1764,7 +1752,7 @@ Other text
 `.trim()
       );
 
-      expect(formatted).toContainAnsiStringWithStyles("┌───────┐\n│", {
+      expect(formatted).toContainAnsiStringWithStyles("┌───────┐", {
         color: "yellow",
       });
       expect(formatted).toContainAnsiStringWithStyles("Header", {
@@ -1773,10 +1761,10 @@ Other text
       expect(formatted).toContainAnsiStringWithStyles("Content", {
         color: "green",
       });
-      expect(formatted).toContainAnsiStringWithStyles(" │\n│", {
+      expect(formatted).toContainAnsiStringWithStyles("│", {
         color: "yellow",
       });
-      expect(formatted).toContainAnsiStringWithStyles("│\n└───────┘", {
+      expect(formatted).toContainAnsiStringWithStyles("└───────┘", {
         color: "yellow",
       });
       expect(formatted).toContainAnsiStringWithStyles("Other text", {
@@ -2237,6 +2225,30 @@ Other text
 │Second Line  │
 └─────────────┘
         `.trim()
+      );
+      expect(formatted).toMatchSnapshot();
+    });
+
+    it("scenario 23", () => {
+      const xml = html`<frame width="18">
+        <line>
+          <s />Label:
+          <span>
+            <span color="cyan">&lt;</span>
+            <pre invert> hi </pre>
+            <span color="cyan">&gt;</span>
+          </span>
+        </line>
+      </frame> `;
+
+      const formatted = MarkupFormatter.format(xml);
+
+      expect(formatted).toMatchAnsiString(
+        `
+┌────────────────┐
+│ Label: <  hi  >│
+└────────────────┘
+            `.trim()
       );
       expect(formatted).toMatchSnapshot();
     });
